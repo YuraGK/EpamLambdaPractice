@@ -30,14 +30,16 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
 	@Override
 	public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
-		if(getMethod(requestEvent).equalsIgnoreCase("GET")&&
+		return buildResponse(200, "{\"statusCode\": 200, \"message\": \"Hello from Lambda\"}");
+
+		/*if(getMethod(requestEvent).equalsIgnoreCase("GET")&&
 				getPath(requestEvent).equalsIgnoreCase("/hello")){
 			return buildResponse(200, "{\"statusCode\": 200, \"message\": \"Hello from Lambda\"}");
 		}else {
 			String mess = "{\"statusCode\": 400, \"message\": \"Bad request syntax or unsupported method. Request path: "+getPath(requestEvent)
 					+". HTTP method: "+getMethod(requestEvent)+"\"}";
 			return buildResponse(400, mess);
-		}
+		}*/
 	}
 
 	private APIGatewayV2HTTPResponse buildResponse(int statusCode, String body) {
@@ -47,13 +49,13 @@ public class HelloWorld implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 				.withBody(body)
 				.build();
 	}
-
+/*
 	private String getMethod(APIGatewayV2HTTPEvent requestEvent) {
 		return requestEvent.getRequestContext().getHttp().getMethod();
 	}
 
 	private String getPath(APIGatewayV2HTTPEvent requestEvent) {
 		return requestEvent.getRequestContext().getHttp().getPath();
-	}
+	}*/
 
 }
