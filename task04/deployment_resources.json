@@ -37,25 +37,6 @@
     "resource_type": "iam_role",
     "tags": {}
   },
-  "async_queue": {
-    "resource_type": "sqs_queue",
-    "fifo_queue": false,
-    "visibility_timeout": 30,
-    "delay_seconds": 0,
-    "maximum_message_size": 1024,
-    "message_retention_period": 60,
-    "receive_message_wait_time_seconds": 0,
-    "policy": {},
-    "redrive_policy": {},
-    "content_based_deduplication": false,
-    "dependencies": [
-      {
-        "resource_name": "sqs_handler",
-        "resource_type": "lambda"
-      }
-    ],
-    "tags": {}
-  },
   "sns_handler-role": {
     "predefined_policies": [],
     "principal_service": "lambda",
@@ -68,18 +49,18 @@
   "lambda_topic": {
     "resource_type": "sns_topic",
     "region": "eu-central-1",
-    "subscriptions": [
-      {
-        "resource_name": "sns_handler",
-        "resource_type": "lambda_function"
-      }
-    ],
-    "dependencies": [
-      {
-        "resource_name": "sns_handler",
-        "resource_type": "lambda"
-      }
-    ],
-    "tags": {}
+    "event_sources": []
+  },
+  "async_queue": {
+    "resource_type": "sqs_queue",
+    "fifo_queue": false,
+    "visibility_timeout": 30,
+    "delay_seconds": 0,
+    "maximum_message_size": 1024,
+    "message_retention_period": 60,
+    "receive_message_wait_time_seconds": 0,
+    "policy": {},
+    "redrive_policy": {},
+    "content_based_deduplication": false
   }
 }
