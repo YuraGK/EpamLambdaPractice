@@ -1,12 +1,18 @@
 package com.task04;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.amazonaws.services.lambda.runtime.events.SNSEvent;
+import com.syndicate.deployment.annotations.events.SnsEventSource;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
-import com.syndicate.deployment.model.RetentionSetting;
+import com.syndicate.deployment.annotations.resources.DependsOn;
+import com.syndicate.deployment.model.*;
 
-import java.util.HashMap;
-import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 @LambdaHandler(
     lambdaName = "sns_handler",
@@ -15,17 +21,26 @@ import java.util.Map;
 	aliasName = "${lambdas_alias_name}",
 	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
 )
-public class SnsHandler implements RequestHandler<Map<String, Object>, String> {
+@SnsEventSource(
+		targetTopic = "lambda_topic",
+		regionScope = RegionScope.DEFAULT
+)
+@DependsOn(
+		name = "lambda_topic",
+		resourceType = ResourceType.SNS_TOPIC
+)
+public class SnsHandler implements RequestHandler<SNSEvent, String> {
+	private static final Logger logger = LogManager.getLogger(SqsHandler.class);
 
-	public String handleRequest(Map<String, Object> snsEvent, Context context) {
-		// Log the SNS event (full message) to CloudWatch Logs
-		System.out.println("Received SNS Message: " + snsEvent);
+	public String handleRequest(SNSEvent snsEvent, Context context) {
+		LambdaLogger lambdaLogger = context.getLogger();
 
-		// Log the Message content specifically (assuming it's in the "Message" field of the SNS event)
-		String snsMessage = (String) snsEvent.get("Message");
-		System.out.println("Message content: " + snsMessage);
-
-		// Optional: Return a response (if required by your architecture)
-		return "SNS message processed successfully!";
+		for (SNSEvent.SNSRecord record : snsEvent.getRecords()) {
+			SNSEvent.SNS sns = record.getSNS();
+			String message = sns.getMessage();
+			lambdaLogger.log(message);
+			logger.info(message);
+		}
+		return "Success";
 	}
 }
