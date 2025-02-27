@@ -50,7 +50,7 @@
           "method_request_parameters": {},
           "integration_request_body_template": {},
           "responses": [
-            "{\n\"statusCode\": 200,\n\"message\": \"Hello from Lambda\"\n}"
+            "{\n\"statusCode\": 201,\n\"message\": \"Hello from Lambda\"\n}"
           ],
           "integration_responses": [],
           "default_error_pattern": true
