@@ -83,8 +83,7 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
 			saveToDynamoDb(itemValues);
 
-
-			return buildResponse(201, "{\"statusCode\": 201, \"event\": "+ requestBody.get("content").toString() +"}");
+			return buildResponse(201, "{\"statusCode\": 201, \"event\": "+ itemValues +"}");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return buildResponse(500, "{\"statusCode\": 500, \"event\": "+ e.getMessage() +"}");
