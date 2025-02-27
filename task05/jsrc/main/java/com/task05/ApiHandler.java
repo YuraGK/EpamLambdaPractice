@@ -61,10 +61,11 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
 
 			String uuid = UUID.randomUUID().toString();
-			int principalId = (Integer) requestBody.get("principalId");
+
 
 
 			JsonNode jsonNode = objectMapper.readTree(requestEvent.getBody());
+			int principalId = jsonNode.get("principalId").asInt();
 			JsonNode contentNode = jsonNode.get("content");
 			Map<String, String> content = objectMapper.readValue(contentNode.toString(), Map.class);
 			lambdaLogger.log(content.toString());
