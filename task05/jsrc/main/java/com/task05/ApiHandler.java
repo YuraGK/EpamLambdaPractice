@@ -47,6 +47,9 @@ import java.util.UUID;
 )
 @DependsOn(name = "Events",
 		resourceType = ResourceType.DYNAMODB_TABLE)
+@EnvironmentVariables(value = {
+		@EnvironmentVariable(key = "region", value = "${region}"),
+		@EnvironmentVariable(key = "table", value = "${target_table}")})
 public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
@@ -90,9 +93,9 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
 	private void saveToDynamoDb(Map<String, AttributeValue> itemValues) {
 		final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
-				.withRegion("eu-central-1")
+				.withRegion(System.getenv("region"))
 				.build();
-		ddb.putItem("Events", itemValues);
+		ddb.putItem(System.getenv("table"), itemValues);
 	}
 
 	private static Map<String, AttributeValue> getAttributesMap(String id,
