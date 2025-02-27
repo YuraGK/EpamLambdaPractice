@@ -25,6 +25,7 @@ import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -72,9 +73,8 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 			lambdaLogger.log(principalId+"");
 			lambdaLogger.log(content.toString());
 
-			LocalDateTime now = LocalDateTime.now();
-			DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
-			String time = formatter.format(now);
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+			String time = OffsetDateTime.now(ZoneOffset.UTC).format(formatter);
 
 			Map<String, AttributeValue> itemValues = getAttributesMap(uuid, principalId, content, time);
 
