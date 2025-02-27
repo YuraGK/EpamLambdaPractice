@@ -7,10 +7,12 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
@@ -44,41 +46,39 @@ import java.util.UUID;
 )
 @DependsOn(name = "Events",
 		resourceType = ResourceType.DYNAMODB_TABLE)
-@EnvironmentVariables(value = {
-		@EnvironmentVariable(key = "region", value = "eu-central-1"),
-		@EnvironmentVariable(key = "table", value = "Events")})
 public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
-
+		LambdaLogger lambdaLogger = context.getLogger();
 		try {
+			lambdaLogger.log("Lambda logger EVENT: " + objectMapper.writeValueAsString(requestEvent));
+			lambdaLogger.log("EVENT TYPE: " + requestEvent.getClass());
 			Map<String, Object> requestBody = objectMapper.readValue(objectMapper.writeValueAsString(requestEvent), LinkedHashMap.class);
 
 
 
-		String uuid = UUID.randomUUID().toString();
-		int principalId = (Integer) requestBody.get("principalId");
-
-		Map<String, Object> content = (Map<String, Object>) requestBody.get("content");
-
-		LocalDateTime now = LocalDateTime.now();
-		DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
-		String time = formatter.format(now);
-
-		Map<String, AttributeValue> itemValues = getAttributesMap(uuid, principalId, content, time);
-
-		Item item = new Item();
-		item.withString("id", uuid);
-		item.withInt("principalId", principalId);
-		item.withString("createdAt", time);
-		item.withMap("body", content);
-		saveToDynamoDb(itemValues);
+			String uuid = UUID.randomUUID().toString();
+			int principalId = (Integer) requestBody.get("principalId");
 
 
-		return buildResponse(201, "{\"statusCode\": 201, \"event\": "+ requestBody.get("content").toString() +"}");
+			JsonNode jsonNode = objectMapper.readTree(requestEvent.getBody());
+			JsonNode contentNode = jsonNode.get("content");
+			Map<String, String> content = objectMapper.readValue(contentNode.toString(), Map.class);
+			lambdaLogger.log(content.toString());
+
+			LocalDateTime now = LocalDateTime.now();
+			DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
+			String time = formatter.format(now);
+
+			Map<String, AttributeValue> itemValues = getAttributesMap(uuid, principalId, content, time);
+
+			saveToDynamoDb(itemValues);
+
+
+			return buildResponse(201, "{\"statusCode\": 201, \"event\": "+ requestBody.get("content").toString() +"}");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return buildResponse(500, "{\"statusCode\": 500, \"event\": "+ e.getMessage() +"}");
@@ -87,14 +87,14 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
 	private void saveToDynamoDb(Map<String, AttributeValue> itemValues) {
 		final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
-				.withRegion(System.getenv("region"))
+				.withRegion("eu-central-1")
 				.build();
-		ddb.putItem(System.getenv("table"), itemValues);
+		ddb.putItem("Events", itemValues);
 	}
 
 	private static Map<String, AttributeValue> getAttributesMap(String id,
 																int principalId,
-																Map<String, Object> content,
+																Map<String, String> content,
 																String time) {
 		Map<String, AttributeValue> itemValues = new HashMap<>();
 
