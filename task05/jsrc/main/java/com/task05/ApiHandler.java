@@ -1,28 +1,26 @@
 package com.task05;
 
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+
 import com.amazonaws.services.dynamodbv2.document.Item;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
+
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
+
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
 import com.syndicate.deployment.annotations.lambda.LambdaUrlConfig;
 import com.syndicate.deployment.annotations.resources.DependsOn;
-import com.syndicate.deployment.model.ResourceType;
-import com.syndicate.deployment.model.RetentionSetting;
+import com.syndicate.deployment.model.*;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
-import org.joda.time.DateTime;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -31,6 +29,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+
 
 @LambdaHandler(
     lambdaName = "api_handler",
@@ -54,9 +53,9 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
-		Map<String, Object> requestBody = null;
+
 		try {
-			requestBody = objectMapper.readValue(objectMapper.writeValueAsString(requestEvent), LinkedHashMap.class);
+			Map<String, Object> requestBody = objectMapper.readValue(objectMapper.writeValueAsString(requestEvent), LinkedHashMap.class);
 
 
 
@@ -68,14 +67,7 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		LocalDateTime now = LocalDateTime.now();
 		DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT.withZone(ZoneOffset.UTC);
 		String time = formatter.format(now);
-		/*
-		String event = "{\n" +
-				"    \"id\": \""+uuid+"\"" +
-				"    \"principalId\": "+principalId+",\n" +
-				"    \"createdAt\": \""+formatter.format(now)+"\",\n" +
-				"    \"body\": "+contentNode+" \n" +
-				"}";
-		*/
+
 		Map<String, AttributeValue> itemValues = getAttributesMap(uuid, principalId, content, time);
 
 		Item item = new Item();
@@ -83,31 +75,21 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		item.withInt("principalId", principalId);
 		item.withString("createdAt", time);
 		item.withMap("body", content);
-		saveToDynamoDb(itemValues, item);
+		saveToDynamoDb(itemValues);
 
 
 		return buildResponse(201, "{\"statusCode\": 201, \"event\": "+ requestBody.get("content").toString() +"}");
-		} catch (JsonProcessingException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			return buildResponse(500, "{\"statusCode\": 500, \"event\": "+ e.getMessage() +"}");
 		}
 	}
 
-	private void saveToDynamoDb(Map<String, AttributeValue> itemValues, Item item) throws JsonProcessingException {
+	private void saveToDynamoDb(Map<String, AttributeValue> itemValues) {
 		final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
 				.withRegion(System.getenv("region"))
 				.build();
-
-		try {
-			ddb.putItem(System.getenv("table"), itemValues);
-		} catch (ResourceNotFoundException e) {
-			System.err.format("Error: The table \"%s\" can't be found.\n", System.getenv("table"));
-			System.err.println(objectMapper.writeValueAsString(itemValues));
-			System.exit(1);
-		} catch (AmazonServiceException e) {
-			System.err.println(e.getMessage());
-			System.exit(1);
-		}
+		ddb.putItem(System.getenv("table"), itemValues);
 	}
 
 	private static Map<String, AttributeValue> getAttributesMap(String id,
@@ -117,7 +99,7 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		Map<String, AttributeValue> itemValues = new HashMap<>();
 
 		AttributeValue principalIdAttribute = new AttributeValue();
-		principalIdAttribute.setN(String.valueOf(principalId));
+		principalIdAttribute.setN(principalId+"");
 
 		AttributeValue contentAttribute = new AttributeValue();
 		Map<String, AttributeValue> contentAttributesMap = new HashMap<>();
