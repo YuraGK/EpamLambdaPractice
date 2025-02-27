@@ -12,6 +12,7 @@
             "dynamodb:PutItem",
             "dynamodb:Batch*",
             "dynamodb:DeleteItem",
+            "dynamodb:GetRecords",
             "ssm:PutParameter",
             "ssm:GetParameter",
             "kms:Decrypt"
