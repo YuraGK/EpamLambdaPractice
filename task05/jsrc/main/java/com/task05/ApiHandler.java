@@ -57,10 +57,7 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		Map<String, Object> requestBody = null;
 		try {
 			requestBody = objectMapper.readValue(objectMapper.writeValueAsString(requestEvent), LinkedHashMap.class);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			return buildResponse(500, "{\"statusCode\": 500, \"event\": "+ e.getMessage() +"}");
-		}
+
 
 
 		String uuid = UUID.randomUUID().toString();
@@ -86,14 +83,14 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		item.withInt("principalId", principalId);
 		item.withString("createdAt", time);
 		item.withMap("body", content);
+		saveToDynamoDb(itemValues, item);
 
-		try {
-			saveToDynamoDb(itemValues, item);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
 
 		return buildResponse(201, "{\"statusCode\": 201, \"event\": "+ requestBody.get("content").toString() +"}");
+		} catch (JsonProcessingException e) {
+			e.printStackTrace();
+			return buildResponse(500, "{\"statusCode\": 500, \"event\": "+ e.getMessage() +"}");
+		}
 	}
 
 	private void saveToDynamoDb(Map<String, AttributeValue> itemValues, Item item) throws JsonProcessingException {
