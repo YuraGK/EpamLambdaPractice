@@ -48,21 +48,18 @@ import java.util.UUID;
 @EnvironmentVariables(value = {
 		@EnvironmentVariable(key = "region", value = "eu-central-1"),
 		@EnvironmentVariable(key = "table", value = "Events")})
-public class ApiHandler implements RequestHandler<Object, APIGatewayV2HTTPResponse> {
+public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 	private ObjectMapper objectMapper = new ObjectMapper();
 
-	public APIGatewayV2HTTPResponse handleRequest(Object requestEvent, Context context) {
+	public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent requestEvent, Context context) {
 		Map<String, Object> requestBody = null;
 		try {
 			requestBody = objectMapper.readValue(objectMapper.writeValueAsString(requestEvent), LinkedHashMap.class);
 		} catch (JsonProcessingException e) {
 			e.printStackTrace();
-			return APIGatewayV2HTTPResponse.builder()
-					.withStatusCode(500)
-					.withBody(e.getMessage())
-					.build();
+			return buildResponse(500, "{\"statusCode\": 500, \"event\": "+ e.getMessage() +"}");
 		}
 
 
