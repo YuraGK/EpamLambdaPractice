@@ -59,7 +59,7 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 			Map<String, Object> requestBody = objectMapper.readValue(objectMapper.writeValueAsString(requestEvent), LinkedHashMap.class);
 
 
-
+			lambdaLogger.log("EVENT BODY: " + requestEvent.getBody());
 			String uuid = UUID.randomUUID().toString();
 
 
@@ -67,7 +67,9 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 			JsonNode jsonNode = objectMapper.readTree(requestEvent.getBody());
 			int principalId = jsonNode.get("principalId").asInt();
 			JsonNode contentNode = jsonNode.get("content");
+
 			Map<String, String> content = objectMapper.readValue(contentNode.toString(), Map.class);
+			lambdaLogger.log(principalId+"");
 			lambdaLogger.log(content.toString());
 
 			LocalDateTime now = LocalDateTime.now();
