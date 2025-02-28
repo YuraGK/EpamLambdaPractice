@@ -77,11 +77,8 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 
 					lambdaLogger.log("key: " + key);
 					lambdaLogger.log("value: " + value);
-					Map<String, Object> content = new HashMap<>();
-					content.put("key",key);
-					content.put("value",value);
 
-					Map<String, AttributeValue> itemValues = getAttributesMap(uuid, key, time, content);
+					Map<String, AttributeValue> itemValues = getInsertAttributesMap(uuid, key, time, key, value);
 
 					saveToDynamoDb(itemValues);
 					lambdaLogger.log("saveToDynamoDb");
@@ -107,17 +104,23 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 		return buildResponse(500, "{\"statusCode\": 500, \"event\": \"event\"}");
 	}
 
-	private static Map<String, AttributeValue> getAttributesMap(String id,
+	private static Map<String, AttributeValue> getInsertAttributesMap(String id,
 																String itemKey,
 																String time,
-																Map<String, Object> content) {
+																String key,
+																int value) {
 		Map<String, AttributeValue> itemValues = new HashMap<>();
+
+
 
 		AttributeValue contentAttribute = new AttributeValue();
 		Map<String, AttributeValue> contentAttributesMap = new HashMap<>();
-		for (Map.Entry entry : content.entrySet()) {
-			contentAttributesMap.put(String.valueOf(entry.getKey()), new AttributeValue(entry.getValue()+""));
-		}
+
+		contentAttributesMap.put("key", new AttributeValue(key));
+		AttributeValue attValue = new AttributeValue();
+		attValue.setN(value+"");
+		contentAttributesMap.put("value", attValue);
+
 		contentAttribute.setM(contentAttributesMap);
 
 		itemValues.put("id", new AttributeValue(id));
