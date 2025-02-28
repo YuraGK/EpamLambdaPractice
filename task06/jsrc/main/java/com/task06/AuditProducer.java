@@ -59,7 +59,7 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 		LambdaLogger lambdaLogger = context.getLogger();
 		try {
 			for (DynamodbEvent.DynamodbStreamRecord record : event.getRecords()) {
-
+				lambdaLogger.log("record: " + record.toString());
 				String uuid = UUID.randomUUID().toString();
 
 				String key = record.getDynamodb().getNewImage().get("key").getS();
