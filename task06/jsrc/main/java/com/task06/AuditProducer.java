@@ -64,32 +64,38 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 				}
 
 				lambdaLogger.log("record: " + record.toString());
+				lambdaLogger.log("newImage: " + record.getDynamodb().getNewImage().toString());
 				String uuid = UUID.randomUUID().toString();
-
-				String key = record.getDynamodb().getNewImage().get("key").getS();
-				int value = Integer.parseInt(record.getDynamodb().getNewImage().get("value").getS());
 
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX");
 				String time = OffsetDateTime.now(ZoneOffset.UTC).format(formatter);
 
-				Map<String, Object> content = new HashMap<>();
-				content.put("key",key);
-				content.put("value",value);
+				if(record.getEventName().equalsIgnoreCase("INSERT")){
+					lambdaLogger.log("INSERT");
+					String key = record.getDynamodb().getNewImage().get("key").getS();
+					int value = Integer.parseInt(record.getDynamodb().getNewImage().get("value").getN());
 
-				Map<String, AttributeValue> itemValues = getAttributesMap(uuid, key, time, content);
+					Map<String, Object> content = new HashMap<>();
+					content.put("key",key);
+					content.put("value",value);
 
-				saveToDynamoDb(itemValues);
+					Map<String, AttributeValue> itemValues = getAttributesMap(uuid, key, time, content);
 
-				String ev = "{\n" +
-						"   \"id\": "+uuid+",\n" +
-						"   \"itemKey\": \""+key+"\",\n" +
-						"   \"modificationTime\": \""+time+"\",\n" +
-						"   \"newValue\": {\n" +
-						"       \"key\": \""+key+"\",\n" +
-						"       \"value\": "+value+"\n" +
-						"   },\n" +
-						"}";
-				return buildResponse(200, "{\"statusCode\": 200, \"event\": "+ ev +"}");
+					saveToDynamoDb(itemValues);
+					lambdaLogger.log("saveToDynamoDb");
+					String ev = "{\n" +
+							"   \"id\": "+uuid+",\n" +
+							"   \"itemKey\": \""+key+"\",\n" +
+							"   \"modificationTime\": \""+time+"\",\n" +
+							"   \"newValue\": {\n" +
+							"       \"key\": \""+key+"\",\n" +
+							"       \"value\": "+value+"\n" +
+							"   },\n" +
+							"}";
+					return buildResponse(200, "{\"statusCode\": 200, \"event\": "+ ev +"}");
+				}
+
+
 			}
 		}catch (Exception e){
 
