@@ -46,10 +46,10 @@ import java.util.UUID;
 )
 @DependsOn(name = "${target_table}",
 		resourceType = ResourceType.DYNAMODB_TABLE)
-@DynamoDbTriggerEventSource(targetTable = "${target_table}", batchSize = 1)
+@DynamoDbTriggerEventSource(targetTable = "Audit", batchSize = 1)
 @EnvironmentVariables(value = {
 		@EnvironmentVariable(key = "region", value = "${region}"),
-		@EnvironmentVariable(key = "table", value = "${target_table}")})
+		@EnvironmentVariable(key = "table", value = "Audit")})
 public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2HTTPResponse> {
 
 	private ObjectMapper objectMapper = new ObjectMapper();
@@ -59,6 +59,10 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 		LambdaLogger lambdaLogger = context.getLogger();
 		try {
 			for (DynamodbEvent.DynamodbStreamRecord record : event.getRecords()) {
+				if (record == null) {
+					continue;
+				}
+
 				lambdaLogger.log("record: " + record.toString());
 				String uuid = UUID.randomUUID().toString();
 
