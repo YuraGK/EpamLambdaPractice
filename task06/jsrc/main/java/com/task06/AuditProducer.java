@@ -73,7 +73,7 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 				if(record.getEventName().equalsIgnoreCase("INSERT")){
 					lambdaLogger.log("INSERT");
 					String key = record.getDynamodb().getNewImage().get("key").getS();
-					String value = record.getDynamodb().getNewImage().get("value").getN();
+					int value = Integer.parseInt(record.getDynamodb().getNewImage().get("value").getN());
 
 					lambdaLogger.log("key: " + key);
 					lambdaLogger.log("value: " + value);
@@ -116,7 +116,7 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 		AttributeValue contentAttribute = new AttributeValue();
 		Map<String, AttributeValue> contentAttributesMap = new HashMap<>();
 		for (Map.Entry entry : content.entrySet()) {
-			contentAttributesMap.put(String.valueOf(entry.getKey()), new AttributeValue((String) entry.getValue()));
+			contentAttributesMap.put(String.valueOf(entry.getKey()), new AttributeValue(entry.getValue()+""));
 		}
 		contentAttribute.setM(contentAttributesMap);
 
