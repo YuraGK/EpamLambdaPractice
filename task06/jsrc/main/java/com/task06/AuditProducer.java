@@ -46,10 +46,10 @@ import java.util.UUID;
 )
 @DependsOn(name = "${target_table}",
 		resourceType = ResourceType.DYNAMODB_TABLE)
-@DynamoDbTriggerEventSource(targetTable = "Audit", batchSize = 1)
+@DynamoDbTriggerEventSource(targetTable = "Configuration", batchSize = 1)
 @EnvironmentVariables(value = {
 		@EnvironmentVariable(key = "region", value = "${region}"),
-		@EnvironmentVariable(key = "table", value = "Audit")})
+		@EnvironmentVariable(key = "table", value = "${target_table}")})
 public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2HTTPResponse> {
 
 	private ObjectMapper objectMapper = new ObjectMapper();
