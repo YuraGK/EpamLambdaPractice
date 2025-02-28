@@ -92,6 +92,30 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 							"   },\n" +
 							"}";
 					return buildResponse(200, "{\"statusCode\": 200, \"event\": "+ ev +"}");
+				}else if(record.getEventName().equalsIgnoreCase("MODIFY")){
+					lambdaLogger.log("MODIFY");
+					String key = record.getDynamodb().getNewImage().get("key").getS();
+					int valueOld = Integer.parseInt(record.getDynamodb().getOldImage().get("value").getN());
+
+					int valueNew = Integer.parseInt(record.getDynamodb().getNewImage().get("value").getN());
+
+					lambdaLogger.log("key: " + key);
+					lambdaLogger.log("valueOld: " + valueOld);
+					lambdaLogger.log("valueNew: " + valueNew);
+
+					Map<String, AttributeValue> itemValues = getModifyAttributesMap(uuid, key, time, "value", valueOld, valueNew);
+
+					saveToDynamoDb(itemValues);
+					lambdaLogger.log("saveToDynamoDb");
+					String ev = "{\n" +
+							"   \"id\": "+uuid+",\n" +
+							"   \"itemKey\": \""+key+"\",\n" +
+							"   \"modificationTime\": \""+time+"\",\n" +
+							"   \"updatedAttribute\": \""+key+"\",\n" +
+							"   \"oldValue\": "+valueOld+",\n" +
+							"   \"newValue\": "+valueNew+"\n" +
+							"}";
+					return buildResponse(200, "{\"statusCode\": 200, \"event\": "+ ev +"}");
 				}
 
 
@@ -127,6 +151,29 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 		itemValues.put("itemKey", new AttributeValue(itemKey));
 		itemValues.put("modificationTime", new AttributeValue(time));
 		itemValues.put("newValue", contentAttribute);
+		return itemValues;
+	}
+
+	private static Map<String, AttributeValue> getModifyAttributesMap(String id,
+																	  String itemKey,
+																	  String time,
+																	  String upKey,
+																	  int valueOld,
+																	  int valueNew) {
+		Map<String, AttributeValue> itemValues = new HashMap<>();
+
+		AttributeValue attOValue = new AttributeValue();
+		attOValue.setN(valueOld+"");
+
+		AttributeValue attNValue = new AttributeValue();
+		attNValue.setN(valueNew+"");
+
+		itemValues.put("id", new AttributeValue(id));
+		itemValues.put("itemKey", new AttributeValue(itemKey));
+		itemValues.put("modificationTime", new AttributeValue(time));
+		itemValues.put("updatedAttribute", new AttributeValue(upKey));
+		itemValues.put("oldValue", attOValue);
+		itemValues.put("newValue", attNValue);
 		return itemValues;
 	}
 
