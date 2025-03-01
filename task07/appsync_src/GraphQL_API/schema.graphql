@@ -2,44 +2,20 @@
 # schema definition language (SDL) here.
 
 
-type CreateEvent{
-	id: ID!
-	createdAt: String!
-}
-
-type Data {
-	createEvent: CreateEvent
-}
-
-
-
-type Meta {
-	key1: Int!
-	key2: String!
-}
-
-type PayLoad {
-	meta: Meta
-}
-
 type Event {
 	id: ID!
 	userId: Int!
 	createdAt: String!
-	payLoad: PayLoad
+	payLoad: AWSJSON!
 }
 
-# noinspection GraphQLUnresolvedReference
-type Mutation {
-	createEvent(
-		userId: Int!
-		payLoad: String!
-	): Data
-}
 type Query {
-	getEvent(id: ID): Event
+	getEvent(id: ID!): Event
 }
 
+type Mutation {
+	createEvent(userId: Int!, payLoad: AWSJSON!): Event
+}
 
 schema {
 	query: Query
