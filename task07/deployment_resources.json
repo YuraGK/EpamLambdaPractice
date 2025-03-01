@@ -14,7 +14,8 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "sts:AssumeRole"
           ],
           "Effect": "Allow",
           "Resource": "*"
@@ -36,15 +37,12 @@
     "tags": {}
   },
   "GraphQL_API-role": {
-    "resource_type": "iam_role",
-    "principal_service": "AppSync",
     "predefined_policies": [],
+    "principal_service": "AppSync",
     "custom_policies": [
       "lambda-basic-execution"
     ],
-    "allowed_accounts": [],
-    "instance_profile": false,
-    "permissions_boundary": "",
+    "resource_type": "iam_role",
     "tags": {}
   }
 }
