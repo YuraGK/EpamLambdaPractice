@@ -178,7 +178,7 @@ public class AuditProducer implements RequestHandler<DynamodbEvent, APIGatewayV2
 	}
 
 	private void saveToDynamoDb(Map<String, AttributeValue> itemValues) {
-			final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+		final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
 				.withRegion(System.getenv("region"))
 				.build();
 		ddb.putItem(System.getenv("table"), itemValues);
