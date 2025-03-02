@@ -12,3 +12,4 @@
 "payLoad": $util.dynamodb.toDynamoDBJson($ctx.args.payLoad)
 }
 }
+
