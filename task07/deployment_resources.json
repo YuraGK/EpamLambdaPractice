@@ -17,6 +17,9 @@
     "primary_auth_type": "API_KEY",
     "custom_policies": [],
     "resource_type": "iam_role",
-    "tags": {}
+    "tags": {},
+    "allowed_accounts": [],
+    "instance_profile": false,
+    "permissions_boundary": ""
   }
 }

@@ -3,7 +3,11 @@
                 #set($date = $ctx.result.createdAt)
 
                 $util.toJson({
-                	"id": $id,
-                	"createdAt": $date
+                    "data": {
+                        "createEvent": {
+                	        "id": $id,
+                	        "createdAt": $date
+                	    }
+                	}
                 })
                 
