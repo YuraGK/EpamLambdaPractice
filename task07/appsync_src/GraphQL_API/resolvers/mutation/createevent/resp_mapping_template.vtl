@@ -1,6 +1,9 @@
 ## Pass back the result from DynamoDB. **
+                #set($id = $ctx.result.id)
+                #set($date = $ctx.result.createdAt)
+
                 $util.toJson({
-                					"id": $ctx.result.id,
-                					"createdAt": $ctx.result.createdAt
-                				})
+                	"id": $id,
+                	"createdAt": $date
+                })
                 
