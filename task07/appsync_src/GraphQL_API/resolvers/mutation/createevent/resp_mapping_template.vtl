@@ -2,6 +2,13 @@
                 #set($id = $ctx.result.id)
                 #set($date = $ctx.result.createdAt)
 
+                #if($id == null)
+                    #set($id = $util.autoId())
+
+                #if($date == null)
+                    #set($date = $util.time.nowISO8601())
+
+
                 $util.toJson({
                 	"id": $id,
                 	"createdAt": $date
