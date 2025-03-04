@@ -2,15 +2,10 @@
                 #set($id = $ctx.result.id)
                 #set($date = $ctx.result.createdAt)
 
-                #if($id == "")
-                    #set($id = $util.autoId())
+                ##$util.toJson({**
+                ##	"id": $id,**
+                ##	"createdAt": $date**
+                ##})**
 
-                #if($date == "")
-                    #set($date = $util.time.nowISO8601())
-
-
-                $util.toJson({
-                	"id": $id,
-                	"createdAt": $date
-                })
+                $util.toJson($ctx.result)
                 
