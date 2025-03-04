@@ -2,10 +2,10 @@
                 #set($id = $ctx.result.id)
                 #set($date = $ctx.result.createdAt)
 
-                #if($id == null)
+                #if($id == "")
                     #set($id = $util.autoId())
 
-                #if($date == null)
+                #if($date == "")
                     #set($date = $util.time.nowISO8601())
 
 
