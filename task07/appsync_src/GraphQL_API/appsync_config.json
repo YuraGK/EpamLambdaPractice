@@ -35,7 +35,7 @@
   "functions": [],
   "log_config": {
     "logging_enabled": true,
-    "field_log_level": "ERROR",
+    "field_log_level": "ALL",
     "cloud_watch_logs_role_name": "",
     "exclude_verbose_content": false
   }, "tags": {},

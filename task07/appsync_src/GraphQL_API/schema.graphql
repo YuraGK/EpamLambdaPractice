@@ -12,10 +12,10 @@ type PayLoad {
 }
 
 type Event {
-	id: ID!
-	userId: Int!
-	createdAt: String!
-	payLoad: PayLoad!
+	id: ID
+	userId: Int
+	createdAt: String
+	payLoad: PayLoad
 }
 
 type Query {
