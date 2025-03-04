@@ -3,9 +3,9 @@
 
 
 type Event {
-	id: ID!
+	id: ID
 	userId: Int
-	createdAt: String!
+	createdAt: String
 	payLoad: AWSJSON
 }
 
