@@ -30,7 +30,7 @@
       "field_name": "createEvent",
       "data_source_name": "graph_data_source",
       "runtime": "JS",
-      "code_path": "resolvers/query/createevent/code.js"
+      "code_path": "resolvers/mutation/createevent/code.js"
     }
   ],
   "functions": [],
