@@ -2,16 +2,11 @@
 # schema definition language (SDL) here.
 
 
-type Meta {
-	key1: Int
-	key2: String
-}
-
 type Event {
 	id: ID!
 	userId: Int
 	createdAt: String!
-	payLoad: Meta
+	payLoad: AWSJSON
 }
 
 type Query {
@@ -19,7 +14,7 @@ type Query {
 }
 
 type Mutation {
-	createEvent(userId: Int!, payLoad: String!): Event
+	createEvent(userId: Int!, payLoad: AWSJSON!): Event
 }
 
 schema {
