@@ -13,7 +13,7 @@
                     "version": "2018-05-29",
                     "operation": "PutItem",
                     "key": {
-                        "id": $util.dynamodb.toDynamoDBJson($util.uuid())
+                        "id": $util.dynamodb.toDynamoDBJson($util.autoId())
                     },
                     "attributeValues": {
                         "userId": $util.dynamodb.toDynamoDBJson($ctx.args.userId),

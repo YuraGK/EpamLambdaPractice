@@ -3,10 +3,10 @@
 
 
 type Event {
-	id: ID
-	userId: Int
-	createdAt: String
-	payLoad: AWSJSON
+	id: ID!
+	userId: Int!
+	createdAt: String!
+	payLoad: AWSJSON!
 }
 
 type Query {
