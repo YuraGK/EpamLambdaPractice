@@ -2,10 +2,8 @@
                 #set($id = $ctx.result.id)
                 #set($date = $ctx.result.createdAt)
 
-                ##$util.toJson({**
-                ##	"id": $id,**
-                ##	"createdAt": $date**
-                ##})**
-
-                $util.toJson($ctx.result)
+                $util.toJson({
+                	"id": $id,
+                	"createdAt": $date
+                })
                 

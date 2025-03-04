@@ -29,9 +29,8 @@
       "type_name": "Mutation",
       "field_name": "createEvent",
       "data_source_name": "graph_data_source",
-      "runtime": "VTL",
-      "request_mapping_template_path": "resolvers/mutation/createevent/req_mapping_template.vtl",
-      "response_mapping_template_path": "resolvers/mutation/createevent/resp_mapping_template.vtl"
+      "runtime": "JS",
+      "code_path": "resolvers/query/createevent/code.js"
     }
   ],
   "functions": [],
