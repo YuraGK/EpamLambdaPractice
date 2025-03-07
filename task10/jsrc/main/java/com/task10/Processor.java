@@ -107,6 +107,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 			AttributeValue f = new AttributeValue();
 			f.setM(resForecast);
 
+			resForecast.forEach((key, value) -> lambdaLogger.log("[Key] : " + key + " [Value] : " + value));
 
 			Map<String, AttributeValue> itemValues = new HashMap<>();
 			String uuid = UUID.randomUUID().toString();
