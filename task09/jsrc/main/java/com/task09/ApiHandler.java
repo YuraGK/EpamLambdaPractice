@@ -54,7 +54,7 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 			}
 
 		} else {
-			return buildResponse(400, gson.toJson(new HashMap<>()));
+			return buildResponse(400, "{\"statusCode\": 400, \"message\": \"Bad request syntax or unsupported method. Request path: "+event.getRawPath()+". HTTP method: "+event.getRequestContext().getHttp().getMethod()+"\"}");
 		}
 	}
 	private APIGatewayV2HTTPResponse buildResponse(int statusCode, String body) {
