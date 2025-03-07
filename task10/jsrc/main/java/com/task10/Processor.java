@@ -31,7 +31,10 @@ import java.util.UUID;
 	layers = {"weather-layer"},
 	isPublishVersion = true,
 	aliasName = "${lambdas_alias_name}",
-	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
+	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED,
+	tracingMode = TracingMode.Active,
+	runtime = DeploymentRuntime.JAVA17,
+	architecture = Architecture.ARM64
 )
 @LambdaUrlConfig(
 		authType = AuthType.NONE,
@@ -50,7 +53,7 @@ import java.util.UUID;
 		architectures = {Architecture.ARM64},
 		artifactExtension = ArtifactExtension.ZIP
 )
-public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 
