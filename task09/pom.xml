@@ -36,7 +36,7 @@
             <artifactId>java-client-meteo-sdk</artifactId>
             <version>1.0-SNAPSHOT</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/jsrc/main/java/lib/open-meteo-sdk-1.0.0.jar</systemPath>
+            <systemPath>${project.basedir}/lib/open-meteo-sdk-1.0.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
