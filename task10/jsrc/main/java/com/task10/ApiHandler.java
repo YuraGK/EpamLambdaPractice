@@ -40,14 +40,14 @@ import java.util.UUID;
 @EnvironmentVariables(value = {
 		@EnvironmentVariable(key = "region", value = "${region}"),
 		@EnvironmentVariable(key = "table", value = "${target_table}")})
-public class processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 
 	public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
-
-		OpenMeteoSimpleApi weatherApiClient = new OpenMeteoSimpleApi();
 		try {
+			OpenMeteoSimpleApi weatherApiClient = new OpenMeteoSimpleApi();
+
 			String forecast = weatherApiClient.getForecast();
 			Map<String, AttributeValue> itemValues = new HashMap<>();
 			String uuid = UUID.randomUUID().toString();
