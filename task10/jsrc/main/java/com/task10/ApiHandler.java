@@ -10,10 +10,10 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
+import com.syndicate.deployment.annotations.lambda.LambdaLayer;
 import com.syndicate.deployment.annotations.lambda.LambdaUrlConfig;
 import com.syndicate.deployment.annotations.resources.DependsOn;
-import com.syndicate.deployment.model.ResourceType;
-import com.syndicate.deployment.model.RetentionSetting;
+import com.syndicate.deployment.model.*;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 
 import com.lambda.layer.exchange.OpenMeteoSimpleApi;
@@ -40,7 +40,15 @@ import java.util.UUID;
 		resourceType = ResourceType.DYNAMODB_TABLE)
 @EnvironmentVariables(value = {
 		@EnvironmentVariable(key = "region", value = "${region}"),
-		@EnvironmentVariable(key = "table", value = "${target_table}")})
+		@EnvironmentVariable(key = "table", value = "${target_table}")}
+)
+@LambdaLayer(
+		layerName = "sdk-layer",
+		libraries = {"lib/open-meteo-sdk-1.0.0.jar"},
+		runtime = DeploymentRuntime.JAVA11,
+		architectures = {Architecture.ARM64},
+		artifactExtension = ArtifactExtension.ZIP
+)
 public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
@@ -66,8 +74,10 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 					"}";
 
 			return buildResponse(200, response);
-		} catch (IOException e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
+			lambdaLogger.log("ERROR"+e.getMessage());
 			return buildResponse(400, "{\"statusCode\": 400, \"event\": "+ e.getMessage() +"}");
 		}
 
