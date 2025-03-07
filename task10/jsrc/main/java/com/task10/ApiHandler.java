@@ -3,6 +3,7 @@ package com.task10;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
@@ -45,7 +46,9 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 
 	public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
+		LambdaLogger lambdaLogger = context.getLogger();
 		try {
+			lambdaLogger.log("Lambda logger EVENT");
 			OpenMeteoSimpleApi weatherApiClient = new OpenMeteoSimpleApi();
 
 			String forecast = weatherApiClient.getForecast();

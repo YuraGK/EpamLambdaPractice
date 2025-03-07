@@ -14,7 +14,12 @@
             "dynamodb:DeleteItem",
             "ssm:PutParameter",
             "ssm:GetParameter",
-            "kms:Decrypt"
+            "kms:Decrypt",
+            "xray:PutTraceSegments",
+            "xray:PutTelemetryRecords",
+            "xray:GetTraceSummaries",
+            "xray:GetTrace",
+            "xray:BatchGetTraces"
           ],
           "Effect": "Allow",
           "Resource": "*"
