@@ -25,7 +25,7 @@
     "resource_type": "iam_policy",
     "tags": {}
   },
-  "task09-role": {
+  "api_handler-role": {
     "predefined_policies": [],
     "principal_service": "lambda",
     "custom_policies": [
