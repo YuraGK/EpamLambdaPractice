@@ -7,6 +7,7 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
 import com.syndicate.deployment.annotations.lambda.LambdaHandler;
@@ -22,6 +23,7 @@ import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -56,19 +58,61 @@ import java.util.UUID;
 public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
-
+	private final ObjectMapper objectMapper = new ObjectMapper();
 	public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
 		LambdaLogger lambdaLogger = context.getLogger();
 		try {
 			lambdaLogger.log("Lambda logger EVENT");
 			OpenMeteoSimpleApi weatherApiClient = new OpenMeteoSimpleApi();
-
 			String forecast = weatherApiClient.getForecast();
+			Map<String, Object> weatherMap = objectMapper.readValue(forecast, HashMap.class);
+
+			Map<String, AttributeValue> resForecast = new HashMap<>();
+			AttributeValue latitude = new AttributeValue();
+			latitude.setN(weatherMap.get("latitude").toString());
+			resForecast.put("latitude", latitude);
+
+			AttributeValue longitude = new AttributeValue();
+			longitude.setN(weatherMap.get("longitude").toString());
+			resForecast.put("longitude", longitude);
+
+			AttributeValue generationtime_ms = new AttributeValue();
+			generationtime_ms.setN(weatherMap.get("generationtime_ms").toString());
+			resForecast.put("generationtime_ms", generationtime_ms);
+
+			AttributeValue utc_offset_seconds = new AttributeValue();
+			utc_offset_seconds.setN(weatherMap.get("utc_offset_seconds").toString());
+			resForecast.put("utc_offset_seconds", utc_offset_seconds);
+
+			resForecast.put("timezone", new AttributeValue(weatherMap.get("timezone").toString()));
+			resForecast.put("timezone_abbreviation", new AttributeValue(weatherMap.get("timezone_abbreviation").toString()));
+
+			AttributeValue elevation = new AttributeValue();
+			elevation.setN(weatherMap.get("elevation").toString());
+			resForecast.put("elevation", elevation);
+
+			AttributeValue hourly = new AttributeValue();
+			hourly.setM((Map<String, AttributeValue>) weatherMap.get("hourly"));
+
+			AttributeValue hourly_units = new AttributeValue();
+			hourly_units.setM( (Map<String, AttributeValue>) weatherMap.get("hourly_units"));
+
+			resForecast.put("hourly",hourly);
+			resForecast.put("hourly_units", hourly_units);
+
+			AttributeValue temperature_2m = new AttributeValue();
+			temperature_2m.setL((List<AttributeValue>)weatherMap.get("temperature_2m"));
+			resForecast.put("temperature_2m", temperature_2m);
+
+			AttributeValue f = new AttributeValue();
+			f.setM(resForecast);
+
+
 			Map<String, AttributeValue> itemValues = new HashMap<>();
 			String uuid = UUID.randomUUID().toString();
 
 			itemValues.put("id", new AttributeValue(uuid));
-			itemValues.put("forecast", new AttributeValue(forecast));
+			itemValues.put("forecast", f);
 
 			saveToDynamoDb(itemValues);
 
