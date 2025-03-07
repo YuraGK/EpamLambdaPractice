@@ -28,6 +28,7 @@ import java.util.UUID;
 @LambdaHandler(
     lambdaName = "processor",
 	roleName = "processor-role",
+	layers = {"weather-layer"},
 	isPublishVersion = true,
 	aliasName = "${lambdas_alias_name}",
 	logsExpiration = RetentionSetting.SYNDICATE_ALIASES_SPECIFIED
@@ -43,7 +44,7 @@ import java.util.UUID;
 		@EnvironmentVariable(key = "table", value = "${target_table}")}
 )
 @LambdaLayer(
-		layerName = "sdk-layer",
+		layerName = "weather-layer",
 		libraries = {"lib/open-meteo-sdk-1.0.0.jar"},
 		runtime = DeploymentRuntime.JAVA11,
 		architectures = {Architecture.ARM64},
