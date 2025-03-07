@@ -33,7 +33,7 @@
     ],
     "resource_type": "iam_role",
     "tags": {},
-    "tracing_mode": "Active"
+    "tracing_mode": "PassThrough"
   },
   "Weather": {
     "resource_type": "dynamodb_table",
