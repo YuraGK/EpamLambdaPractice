@@ -29,7 +29,7 @@ import java.util.Map;
 )
 @LambdaLayer(
 		layerName = "sdk-layer",
-		libraries = {"sdct-at-java-lambda_layer/open-meteo-sdk-1.0.0.jar"},
+		libraries = {"lib/open-meteo-sdk-1.0.0.jar"},
 		runtime = DeploymentRuntime.JAVA11,
 		architectures = {Architecture.ARM64},
 		artifactExtension = ArtifactExtension.ZIP
