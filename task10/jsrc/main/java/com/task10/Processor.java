@@ -161,7 +161,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
 		AttributeValue time = new AttributeValue();
 
-/*		List<AttributeValue> dateList = new ArrayList<>();
+		List<AttributeValue> dateList = new ArrayList<>();
 
 		dateList.add(new AttributeValue("2023-12-04T00:00"));
 		dateList.add(new AttributeValue("2023-12-04T01:00"));
@@ -169,14 +169,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		dateList.add(new AttributeValue("..."));
 
 		time.setL(dateList);
-*/
-		Set<String> stringSet = new HashSet<>();
-		stringSet.add("2023-12-04T00:00");
-		stringSet.add("2023-12-04T01:00");
-		stringSet.add("2023-12-04T02:00");
-		stringSet.add("...");
 
-		time.setSS(stringSet);
 
 /////////////////////////////////////////
 
