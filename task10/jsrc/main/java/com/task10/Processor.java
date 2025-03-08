@@ -160,9 +160,14 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		String[] dateTimes = cleanInput.split("\", \"");
 		List<AttributeValue> dateList = new ArrayList<>();
 
-		for (String dateTime : dateTimes) {
+		/*for (String dateTime : dateTimes) {
 			dateList.add(new AttributeValue(dateTime.replace("\"", "")));
-		}
+		}*/
+
+		dateList.add(new AttributeValue("2023-12-04T00:00"));
+		dateList.add(new AttributeValue("2023-12-04T01:00"));
+		dateList.add(new AttributeValue("2023-12-04T02:00"));
+		dateList.add(new AttributeValue("..."));
 
 		AttributeValue time = new AttributeValue();
 		time.setL(dateList);
@@ -174,11 +179,24 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		String[] numbers = cleanInput.split(", ");
 
 		List<AttributeValue> floatList = new ArrayList<>();
-		for (String number : numbers) {
+		/*for (String number : numbers) {
 			AttributeValue tmp = new AttributeValue();
 			tmp.setN(number);
 			floatList.add(tmp);
-		}
+		}*/
+		AttributeValue tmp = new AttributeValue();
+		tmp.setN("-2.4");
+		floatList.add(tmp);
+
+		tmp = new AttributeValue();
+		tmp.setN("-2.8");
+		floatList.add(tmp);
+
+		tmp = new AttributeValue();
+		tmp.setN("-3.2");
+		floatList.add(tmp);
+		floatList.add(new AttributeValue("..."));
+
 		AttributeValue temperature_2m = new AttributeValue();
 		temperature_2m.setL(floatList);
 
