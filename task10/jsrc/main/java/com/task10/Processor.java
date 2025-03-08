@@ -23,6 +23,7 @@ import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @LambdaHandler(
     lambdaName = "processor",
@@ -157,8 +158,8 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		String ht = hourly.get("time").toString();
 
 		String cleanInput = ht.substring(1, ht.length() - 1);
-		String[] dateTimes = cleanInput.split("\", \"");
-
+		String[] dateTimes = cleanInput.trim().split("\", \"");
+		/*
 		AttributeValue time = new AttributeValue();
 
 		List<AttributeValue> dateList = new ArrayList<>();
@@ -168,7 +169,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		dateList.add(new AttributeValue("2023-12-04T02:00"));
 		dateList.add(new AttributeValue("..."));
 
-		time.setL(dateList);
+		time.setL(dateList);*/
 
 
 /////////////////////////////////////////
@@ -200,7 +201,11 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		AttributeValue temperature_2m = new AttributeValue();
 		temperature_2m.setL(floatList);
 
-		resHourly.put("time", time);
+
+		List<String> hourlyTimes = Arrays.asList("2023-12-04T00:00", "2023-12-04T01:00", "2023-12-04T02:00", "...");
+		resHourly.put("time", new AttributeValue().withL(hourlyTimes.stream().map(time -> new AttributeValue(time)).collect(Collectors.toList())));
+
+		//resHourly.put("time", time);
 		resHourly.put("temperature_2m",temperature_2m);
 
 		return resHourly;
