@@ -63,6 +63,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 			lambdaLogger.log("Lambda logger EVENT");
 			OpenMeteoSimpleApi weatherApiClient = new OpenMeteoSimpleApi();
 			String forecast = weatherApiClient.getForecast();
+			lambdaLogger.log("forecast raw: "+forecast);
 			Map<String, Object> weatherMap = objectMapper.readValue(forecast, HashMap.class);
 
 			Map<String, AttributeValue> resForecast = new HashMap<>();
@@ -98,7 +99,9 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 			resForecast.put("hourly",hourly);
 			resForecast.put("hourly_units", hourly_units);
 
-			JSONObject jsonObject = new JSONObject(forecast);
+			JSONObject jsonObject = new JSONObject("{temperature_2m:"+weatherMap.get("temperature_2m")+"}");
+			lambdaLogger.log("JSONObject: "+jsonObject.toString());
+
 			List<AttributeValue> temperatureList = new ArrayList<>();
 			for(int i = 0; i<jsonObject.getJSONArray("temperature_2m").length(); i++){
 				AttributeValue tm = new AttributeValue();
