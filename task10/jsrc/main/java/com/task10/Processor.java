@@ -20,12 +20,10 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.lambda.layer.exchange.OpenMeteoSimpleApi;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
+import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @LambdaHandler(
     lambdaName = "processor",
@@ -95,13 +93,21 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 			hourly.setM((Map<String, AttributeValue>) weatherMap.get("hourly"));
 
 			AttributeValue hourly_units = new AttributeValue();
-			hourly_units.setM( (Map<String, AttributeValue>) weatherMap.get("hourly_units"));
+			hourly_units.setM((Map<String, AttributeValue>) weatherMap.get("hourly_units"));
 
 			resForecast.put("hourly",hourly);
 			resForecast.put("hourly_units", hourly_units);
 
+			JSONObject jsonObject = new JSONObject(forecast);
+			List<AttributeValue> temperatureList = new ArrayList<>();
+			for(int i = 0; i<jsonObject.getJSONArray("temperature_2m").length(); i++){
+				AttributeValue tm = new AttributeValue();
+				tm.setN(jsonObject.getJSONArray("temperature_2m").get(i).toString());
+				temperatureList.add(tm);
+			}
+
 			AttributeValue temperature_2m = new AttributeValue();
-			temperature_2m.setL((List<AttributeValue>)weatherMap.get("temperature_2m"));
+			temperature_2m.setL(temperatureList);
 			resForecast.put("temperature_2m", temperature_2m);
 
 			AttributeValue f = new AttributeValue();
