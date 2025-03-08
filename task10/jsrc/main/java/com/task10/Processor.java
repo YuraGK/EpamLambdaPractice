@@ -68,27 +68,36 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 			Map<String, Object> weatherMap = objectMapper.readValue(forecast, HashMap.class);
 
 			Map<String, AttributeValue> resForecast = new HashMap<>();
+
+
+			String temp = weatherMap.get("latitude").toString();
 			AttributeValue latitude = new AttributeValue();
-			latitude.setN(weatherMap.get("latitude").toString());
+			latitude.setN(temp.substring(0, temp.length() - 1));
 			resForecast.put("latitude", latitude);
 
+			temp = weatherMap.get("longitude").toString();
 			AttributeValue longitude = new AttributeValue();
-			longitude.setN(weatherMap.get("longitude").toString());
+			longitude.setN(temp.substring(0, temp.length() - 1));
 			resForecast.put("longitude", longitude);
 
+			temp = weatherMap.get("generationtime_ms").toString();
 			AttributeValue generationtime_ms = new AttributeValue();
-			generationtime_ms.setN(weatherMap.get("generationtime_ms").toString());
+			generationtime_ms.setN(temp.substring(0, temp.length() - 1));
 			resForecast.put("generationtime_ms", generationtime_ms);
 
+			temp = weatherMap.get("utc_offset_seconds").toString();
 			AttributeValue utc_offset_seconds = new AttributeValue();
-			utc_offset_seconds.setN(weatherMap.get("utc_offset_seconds").toString());
+			utc_offset_seconds.setN(temp.substring(0, temp.length() - 1));
 			resForecast.put("utc_offset_seconds", utc_offset_seconds);
 
-			resForecast.put("timezone", new AttributeValue(weatherMap.get("timezone").toString()));
-			resForecast.put("timezone_abbreviation", new AttributeValue(weatherMap.get("timezone_abbreviation").toString()));
+			temp = weatherMap.get("timezone").toString();
+			resForecast.put("timezone", new AttributeValue(temp.substring(0, temp.length() - 1)));
+			temp = weatherMap.get("timezone_abbreviation").toString();
+			resForecast.put("timezone_abbreviation", new AttributeValue(temp.substring(0, temp.length() - 1)));
 
+			temp = weatherMap.get("elevation").toString();
 			AttributeValue elevation = new AttributeValue();
-			elevation.setN(weatherMap.get("elevation").toString());
+			elevation.setN(temp.substring(0, temp.length() - 1));
 			resForecast.put("elevation", elevation);
 
 			AttributeValue hourly = new AttributeValue();
