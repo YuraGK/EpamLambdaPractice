@@ -168,7 +168,7 @@
     "tags": {},
     "minimum_compression_size": 0,
     "authorizers": {
-      "task11_api_authorizer": {
+      "authorizer": {
         "type": "COGNITO_USER_POOLS",
         "identity_source": "method.request.header.Authorization",
         "ttl": 300,
@@ -190,7 +190,7 @@
   },
   "Reservations": {
     "resource_type": "dynamodb_table",
-    "hash_key_name": "clientName",
+    "hash_key_name": "id",
     "hash_key_type": "S",
     "read_capacity": 1,
     "write_capacity": 1,
