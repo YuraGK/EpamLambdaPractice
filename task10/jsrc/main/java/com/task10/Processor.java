@@ -158,19 +158,26 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
 		String cleanInput = ht.substring(1, ht.length() - 1);
 		String[] dateTimes = cleanInput.split("\", \"");
-		List<AttributeValue> dateList = new ArrayList<>();
 
-		/*for (String dateTime : dateTimes) {
-			dateList.add(new AttributeValue(dateTime.replace("\"", "")));
-		}*/
+		AttributeValue time = new AttributeValue();
+
+/*		List<AttributeValue> dateList = new ArrayList<>();
 
 		dateList.add(new AttributeValue("2023-12-04T00:00"));
 		dateList.add(new AttributeValue("2023-12-04T01:00"));
 		dateList.add(new AttributeValue("2023-12-04T02:00"));
 		dateList.add(new AttributeValue("..."));
 
-		AttributeValue time = new AttributeValue();
 		time.setL(dateList);
+*/
+		Set<String> stringSet = new HashSet<>();
+		stringSet.add("2023-12-04T00:00");
+		stringSet.add("2023-12-04T01:00");
+		stringSet.add("2023-12-04T02:00");
+		stringSet.add("...");
+
+		time.setSS(stringSet);
+
 /////////////////////////////////////////
 
 		String htm = hourly.get("temperature_2m").toString();
