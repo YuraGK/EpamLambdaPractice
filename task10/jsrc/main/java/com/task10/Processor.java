@@ -180,7 +180,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 			floatList.add(tmp);
 		}
 		AttributeValue temperature_2m = new AttributeValue();
-		time.setL(floatList);
+		temperature_2m.setL(floatList);
 
 		resHourly.put("time", time);
 		resHourly.put("temperature_2m",temperature_2m);
