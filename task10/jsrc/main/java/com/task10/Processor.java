@@ -22,10 +22,7 @@ import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @LambdaHandler(
     lambdaName = "processor",
@@ -68,43 +65,34 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 			Map<String, Object> weatherMap = objectMapper.readValue(forecast, HashMap.class);
 
 			Map<String, AttributeValue> resForecast = new HashMap<>();
-
-
-			String temp = weatherMap.get("latitude").toString();
 			AttributeValue latitude = new AttributeValue();
-			latitude.setN(temp.substring(0, temp.length() - 1));
+			latitude.setN(weatherMap.get("latitude").toString());
 			resForecast.put("latitude", latitude);
 
-			temp = weatherMap.get("longitude").toString();
 			AttributeValue longitude = new AttributeValue();
-			longitude.setN(temp.substring(0, temp.length() - 1));
+			longitude.setN(weatherMap.get("longitude").toString());
 			resForecast.put("longitude", longitude);
 
-			temp = weatherMap.get("generationtime_ms").toString();
 			AttributeValue generationtime_ms = new AttributeValue();
-			generationtime_ms.setN(temp.substring(0, temp.length() - 1));
+			generationtime_ms.setN(weatherMap.get("generationtime_ms").toString());
 			resForecast.put("generationtime_ms", generationtime_ms);
 
-			temp = weatherMap.get("utc_offset_seconds").toString();
 			AttributeValue utc_offset_seconds = new AttributeValue();
-			utc_offset_seconds.setN(temp.substring(0, temp.length() - 1));
+			utc_offset_seconds.setN(weatherMap.get("utc_offset_seconds").toString());
 			resForecast.put("utc_offset_seconds", utc_offset_seconds);
 
-			temp = weatherMap.get("timezone").toString();
-			resForecast.put("timezone", new AttributeValue(temp.substring(0, temp.length() - 1)));
-			temp = weatherMap.get("timezone_abbreviation").toString();
-			resForecast.put("timezone_abbreviation", new AttributeValue(temp.substring(0, temp.length() - 1)));
+			resForecast.put("timezone", new AttributeValue(weatherMap.get("timezone").toString()));
+			resForecast.put("timezone_abbreviation", new AttributeValue(weatherMap.get("timezone_abbreviation").toString()));
 
-			temp = weatherMap.get("elevation").toString();
 			AttributeValue elevation = new AttributeValue();
-			elevation.setN(temp.substring(0, temp.length() - 1));
+			elevation.setN(weatherMap.get("elevation").toString());
 			resForecast.put("elevation", elevation);
 
 			AttributeValue hourly = new AttributeValue();
-			hourly.setM((Map<String, AttributeValue>) weatherMap.get("hourly"));
+			hourly.setM(getHourly((Map<String, Object>) weatherMap.get("hourly")));
 
 			AttributeValue hourly_units = new AttributeValue();
-			hourly_units.setM((Map<String, AttributeValue>) weatherMap.get("hourly_units"));
+			hourly_units.setM(getHourly_units((Map<String, Object>) weatherMap.get("hourly_units")));
 
 			resForecast.put("hourly",hourly);
 			resForecast.put("hourly_units", hourly_units);
@@ -137,6 +125,8 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 
 	}
 
+
+
 	private void saveToDynamoDb(Map<String, AttributeValue> itemValues) {
 		final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
 				.withRegion(System.getenv("region"))
@@ -150,5 +140,51 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 				.withHeaders(responseHeaders)
 				.withBody(body)
 				.build();
+	}
+
+	private Map<String, AttributeValue> getHourly_units(Map<String, Object> hourly_units){
+		Map<String, AttributeValue> resHourly_units = new HashMap<>();
+
+		resHourly_units.put("time", new AttributeValue(hourly_units.get("time").toString()));
+		resHourly_units.put("temperature_2m", new AttributeValue(hourly_units.get("temperature_2m").toString()));
+
+		return resHourly_units;
+	}
+
+	private Map<String, AttributeValue> getHourly(Map<String, Object> hourly) {
+		Map<String, AttributeValue> resHourly = new HashMap<>();
+
+		String ht = hourly.get("time").toString();
+
+		String cleanInput = ht.substring(1, ht.length() - 1);
+		String[] dateTimes = cleanInput.split("\", \"");
+		List<AttributeValue> dateList = new ArrayList<>();
+
+		for (String dateTime : dateTimes) {
+			dateList.add(new AttributeValue(dateTime.replace("\"", "")));
+		}
+
+		AttributeValue time = new AttributeValue();
+		time.setL(dateList);
+/////////////////////////////////////////
+
+		String htm = hourly.get("temperature_2m").toString();
+
+		cleanInput = htm.substring(1, htm.length() - 1);
+		String[] numbers = cleanInput.split(", ");
+
+		List<AttributeValue> floatList = new ArrayList<>();
+		for (String number : numbers) {
+			AttributeValue tmp = new AttributeValue();
+			tmp.setN(number);
+			floatList.add(tmp);
+		}
+		AttributeValue temperature_2m = new AttributeValue();
+		time.setL(floatList);
+
+		resHourly.put("time", time);
+		resHourly.put("temperature_2m",temperature_2m);
+
+		return resHourly;
 	}
 }
