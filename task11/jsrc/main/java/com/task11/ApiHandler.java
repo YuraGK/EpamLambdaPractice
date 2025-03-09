@@ -89,7 +89,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 				resultBody = getTables();
 			}else if ("POST".equals(method) && "/tables".equals(rawPath)) {
 				resultBody = postTables(event, lambdaLogger);
-			}else if ("GET".equals(method) && "/tables/".equals(rawPath.substring(0, rawPath.length() - 1))) {
+			}else if ("GET".equals(method) && (rawPath.matches("/tables/\\d+"))) {
 
 				String tableId = rawPath.substring("/tables/".length());
 
@@ -217,7 +217,9 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 			table.put("number", Integer.parseInt(item.get("number").getN()));
 			table.put("places", Integer.parseInt(item.get("places").getN()));
 			table.put("isVip", Boolean.parseBoolean(item.get("isVip").getBOOL().toString()));
-			table.put("minOrder", item.containsKey("minOrder") ? Integer.parseInt(item.get("minOrder").getN()) : null);
+			if(item.containsKey("minOrder")){
+				table.put("minOrder", Integer.parseInt(item.get("minOrder").getN()));
+			}
 			tableList.add(table);
 		}
 
@@ -267,7 +269,9 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 				table.put("number", Integer.parseInt(item.get("number").getN()));
 				table.put("places", Integer.parseInt(item.get("places").getN()));
 				table.put("isVip", Boolean.parseBoolean(item.get("isVip").getBOOL().toString()));
-				table.put("minOrder", item.containsKey("minOrder") ? Integer.parseInt(item.get("minOrder").getN()) : null);
+				if(item.containsKey("minOrder")){
+					table.put("minOrder", Integer.parseInt(item.get("minOrder").getN()));
+				}
 				break;
 			}
 		}
