@@ -5,6 +5,8 @@ import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClientBuilder
 import com.amazonaws.services.cognitoidp.model.*;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.model.ScanRequest;
+import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -23,9 +25,7 @@ import com.syndicate.deployment.model.RetentionSetting;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,11 +66,11 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
 		try {
 			if ("POST".equals(method) && "/signup".equals(rawPath)) {
-				resultBody = postSignup(event);
+				resultBody = postSignup(event, lambdaLogger);
 			} else if ("POST".equals(method) && "/signin".equals(rawPath)) {
-				resultBody = postSignin(event);
+				resultBody = postSignin(event, lambdaLogger);
 			}else if ("GET".equals(method) && "/tables".equals(rawPath)) {
-				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
+				resultBody = getTables(event);
 			}else if ("POST".equals(method) && "/tables".equals(rawPath)) {
 				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
 			}else if ("GET".equals(method) && "/tables/".equals(rawPath.substring(0, rawPath.length() - 1))) {
@@ -91,7 +91,23 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		return buildResponse(200, resultBody);
 	}
 
-	private String postSignin(APIGatewayV2HTTPEvent requestEvent) throws JsonProcessingException {
+	private String getTables(APIGatewayV2HTTPEvent event) {
+
+
+		ScanResult scanResult = getFromDynamoDb(System.getenv("tables_table"));
+
+		List<AttributeValue> tableList = new ArrayList<>();
+		////
+
+
+		Map<String, AttributeValue> itemValues = new HashMap<>();
+		itemValues.put("tables",new AttributeValue().withL(tableList));
+		AttributeValue resBody = new AttributeValue().withM(itemValues);
+
+		return "{\"statusCode\": 200, \"event\": \""+resBody+"\"}";
+	}
+
+	private String postSignin(APIGatewayV2HTTPEvent requestEvent, LambdaLogger logger) throws JsonProcessingException {
 		JsonNode jsonNode = objectMapper.readTree(requestEvent.getBody());
 
 		String email = jsonNode.get("email").asText();
@@ -106,37 +122,43 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 
 		String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
 				.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+		logger.log("Retrieved user pool ID: " + userPoolId);
 
 		String clientId = getClientIdByUserPoolName(System.getenv("booking_userpool"))
 				.orElseThrow(() -> new IllegalArgumentException("No such client ID"));
+		logger.log("Retrieved client ID: " + clientId);
 
 		Map<String, String> authParams = new HashMap<>();
 		authParams.put("USERNAME", email);
 		authParams.put("PASSWORD", password);
+		logger.log("Authentication parameters: " + authParams);
 
 		AdminInitiateAuthRequest authRequest = new AdminInitiateAuthRequest()
 				.withAuthFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
 				.withUserPoolId(userPoolId)
 				.withClientId(clientId)
 				.withAuthParameters(authParams);
+		logger.log("AdminInitiateAuthRequest: " + authRequest.toString());
 
 		AdminInitiateAuthResult result = cognitoClient.adminInitiateAuth(authRequest);
-
+		logger.log("AdminInitiateAuthResult: " + result.toString());
+		String accessToken = "";
 		if (result.getAuthenticationResult() != null) {
-			String accessToken = result.getAuthenticationResult().getIdToken();
+			accessToken = result.getAuthenticationResult().getIdToken();
+			logger.log("Authentication successful. AccessToken: " + accessToken);
 
 			Map<String, Object> jsonResponse = new HashMap<>();
 			jsonResponse.put("accessToken", accessToken);
 
+			logger.log("Response JSON: " + jsonResponse);
+			return "{\"statusCode\": 200, \"event\": \""+accessToken+"\"}";
 		} else {
-			throw new IllegalArgumentException("There was an error in the request.");
+			logger.log("Authentication failed, no tokens returned.");
+			throw new IllegalArgumentException("Authentication failed, no tokens returned.");
 		}
-
-		String accessToken = "";
-		return "{\"statusCode\": 200, \"event\": \""+accessToken+"\"}";
 	}
 
-	private String postSignup(APIGatewayV2HTTPEvent requestEvent) throws JsonProcessingException {
+	private String postSignup(APIGatewayV2HTTPEvent requestEvent, LambdaLogger logger) throws JsonProcessingException {
 		JsonNode jsonNode = objectMapper.readTree(requestEvent.getBody());
 
 		String firstName = jsonNode.get("firstName").asText();
@@ -152,20 +174,32 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 			throw new IllegalArgumentException("There was an error in the request.");
 		}
 
+		logger.log("Looking up user pool ID for: " + System.getenv("booking_userpool"));
 		String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
 				.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+		logger.log("Found user pool ID: " + userPoolId);
 
 		AdminCreateUserRequest adminCreateUserRequest = new AdminCreateUserRequest()
 				.withUserPoolId(userPoolId)
 				.withUsername(email)
 				.withUserAttributes(new AttributeType().withName("email").withValue(email))
 				.withMessageAction(MessageActionType.SUPPRESS);
+		logger.log("AdminCreateUserRequest: " + adminCreateUserRequest.toString());
 
 		AdminSetUserPasswordRequest adminSetUserPassword = new AdminSetUserPasswordRequest()
 				.withPassword(password)
 				.withUserPoolId(userPoolId)
 				.withUsername(email)
 				.withPermanent(true);
+		logger.log(adminSetUserPassword.toString());
+
+		logger.log("Creating user in Cognito...");
+		cognitoClient.adminCreateUser(adminCreateUserRequest);
+		logger.log("User created successfully.");
+
+		logger.log("Setting user password...");
+		cognitoClient.adminSetUserPassword(adminSetUserPassword);
+		logger.log("Password set successfully.");
 
 		cognitoClient.adminCreateUser(adminCreateUserRequest);
 		cognitoClient.adminSetUserPassword(adminSetUserPassword);
@@ -213,6 +247,16 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 				.withRegion(System.getenv("region"))
 				.build();
 		ddb.putItem(table, itemValues);
+	}
+
+	private ScanResult getFromDynamoDb(String table) {
+		final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+				.withRegion(System.getenv("region"))
+				.build();
+
+		ScanRequest scanRequest = new ScanRequest().withTableName(table);
+		ScanResult scanResult = ddb.scan(scanRequest);
+		return scanResult;
 	}
 
 	private APIGatewayV2HTTPResponse buildResponse(int statusCode, String body) {
