@@ -318,16 +318,16 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		String slotTimeStart = String.valueOf(body.get("slotTimeStart"));
 		String slotTimeEnd = String.valueOf(body.get("slotTimeEnd"));
 
-		Map<String, AttributeValue> newTable = new HashMap<>();
-		newTable.put("tableNumber", new AttributeValue().withN(tableNumber));
-		newTable.put("clientName", new AttributeValue(clientName));
-		newTable.put("phoneNumber", new AttributeValue(phoneNumber));
-		newTable.put("date", new AttributeValue(date));
-		newTable.put("slotTimeStart", new AttributeValue(slotTimeStart));
-		newTable.put("slotTimeEnd", new AttributeValue(slotTimeEnd));
+		Map<String, AttributeValue> newReservation = new HashMap<>();
+		newReservation.put("tableNumber", new AttributeValue().withN(tableNumber));
+		newReservation.put("clientName", new AttributeValue(clientName));
+		newReservation.put("phoneNumber", new AttributeValue(phoneNumber));
+		newReservation.put("date", new AttributeValue(date));
+		newReservation.put("slotTimeStart", new AttributeValue(slotTimeStart));
+		newReservation.put("slotTimeEnd", new AttributeValue(slotTimeEnd));
 
 
-		saveToDynamoDb(newTable, System.getenv("reservations_table"));
+		saveToDynamoDb(newReservation, System.getenv("reservations_table"));
 
 
 		return "{\"reservationId\": "+UUID.randomUUID()+"}";
