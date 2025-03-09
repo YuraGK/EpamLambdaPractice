@@ -160,7 +160,7 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		String cleanInput = ht.substring(1, ht.length() - 1);
 		//List<AttributeValue> dateTimes = Arrays.stream(cleanInput.trim().split("\", \"")).map(x -> new AttributeValue(x)).collect(Collectors.toList());
 
-		String[] dates = cleanInput.trim().split("\", \"");
+		String[] dates = cleanInput.trim().split(", ");
 		List<AttributeValue> dateTimes = new ArrayList<>();
 		for (String date : dates) {
 			dateTimes.add(new AttributeValue(date));
