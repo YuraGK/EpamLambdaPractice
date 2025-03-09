@@ -154,8 +154,6 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		cognitoClient.adminSetUserPassword(adminSetUserPassword);
 		logger.log("Password set successfully.");
 
-		/*cognitoClient.adminCreateUser(adminCreateUserRequest);
-		cognitoClient.adminSetUserPassword(adminSetUserPassword);*/
 
 		return "{\"statusCode\": 200, \"event\": \"Sign-up process is successful\"}";
 	}
@@ -240,7 +238,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		String minOrder = "";
 
 		Map<String, AttributeValue> newTable = new HashMap<>();
-		newTable.put("id", new AttributeValue().withN(id));
+		newTable.put("id", new AttributeValue(id));
 		newTable.put("number", new AttributeValue().withN(number));
 		newTable.put("places", new AttributeValue().withN(places));
 		newTable.put("isVip", new AttributeValue().withBOOL(isVip));
