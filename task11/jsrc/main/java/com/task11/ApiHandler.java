@@ -40,6 +40,7 @@ import com.syndicate.deployment.model.environment.ValueTransformer;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
+import java.time.LocalTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -330,6 +331,15 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		newReservation.put("slotTimeStart", new AttributeValue(slotTimeStart));
 		newReservation.put("slotTimeEnd", new AttributeValue(slotTimeEnd));
 
+		if (!doesTableExist(tableNumber, lambdaLogger)) {
+			lambdaLogger.log("Table does not exist");
+			throw new IllegalArgumentException("Table does not exist");
+		}
+
+		if (isReservationOverlapping(tableNumber, date, slotTimeStart, slotTimeEnd)) {
+			lambdaLogger.log("Table does not exist");
+			throw new IllegalArgumentException("Reservation overlaps with an existing reservation");
+		}
 
 		saveToDynamoDb(newReservation, System.getenv("reservations_table"));
 
@@ -374,6 +384,50 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 				password.matches(".*[a-z].*") &&
 				password.matches(".*\\d.*") &&
 				password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+	}
+
+	public boolean doesTableExist(String tableNumber, LambdaLogger logger) {
+		AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+				.withRegion(System.getenv("region"))
+				.build();
+		ScanResult scanResult = ddb.scan(new ScanRequest().withTableName(System.getenv("tables_table")));
+
+		for (Map<String, AttributeValue> item : scanResult.getItems()) {
+			if (tableNumber.equals(item.get("number").getN())) {
+				logger.log("Table exists, number: " + tableNumber);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean isReservationOverlapping(String tableNumber, String date, String slotTimeStart, String slotTimeEnd) {
+		AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
+				.withRegion(System.getenv("region"))
+				.build();
+		ScanResult scanResult = ddb.scan(new ScanRequest().withTableName(System.getenv("reservations_table")));
+		for (Map<String, AttributeValue> item : scanResult.getItems()) {
+			String existingTableNumber = item.get("tableNumber").getS();
+			String existingDate = item.get("date").getS();
+
+			if (tableNumber.equals(existingTableNumber) && date.equals(existingDate)) {
+				String existingSlotTimeStart = item.get("slotTimeStart").getS();
+				String existingSlotTimeEnd = item.get("slotTimeEnd").getS();
+
+				return timeOverlap(slotTimeStart, slotTimeEnd, existingSlotTimeStart, existingSlotTimeEnd);
+			}
+		}
+
+		return false;
+	}
+	private boolean timeOverlap(String slotTimeStart, String slotTimeEnd, String existingSlotTimeStart, String existingSlotTimeEnd) {
+
+		LocalTime start = LocalTime.parse(slotTimeStart);
+		LocalTime end = LocalTime.parse(slotTimeEnd);
+		LocalTime existingStart = LocalTime.parse(existingSlotTimeStart);
+		LocalTime existingEnd = LocalTime.parse(existingSlotTimeEnd);
+
+		return (start.isBefore(existingEnd) && end.isAfter(existingStart));
 	}
 
 }
