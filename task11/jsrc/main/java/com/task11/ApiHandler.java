@@ -36,6 +36,7 @@ import com.syndicate.deployment.annotations.lambda.LambdaUrlConfig;
 import com.syndicate.deployment.annotations.resources.DependsOn;
 import com.syndicate.deployment.model.ResourceType;
 import com.syndicate.deployment.model.RetentionSetting;
+import com.syndicate.deployment.model.environment.ValueTransformer;
 import com.syndicate.deployment.model.lambda.url.AuthType;
 import com.syndicate.deployment.model.lambda.url.InvokeMode;
 
@@ -60,7 +61,9 @@ import java.util.regex.Pattern;
 		@EnvironmentVariable(key = "region", value = "${region}"),
 		@EnvironmentVariable(key = "tables_table", value = "${tables_table}"),
 		@EnvironmentVariable(key = "reservations_table", value = "${reservations_table}"),
-		@EnvironmentVariable(key = "booking_userpool", value = "${booking_userpool}")
+		@EnvironmentVariable(key = "booking_userpool", value = "${booking_userpool}"),
+		@EnvironmentVariable(key = "COGNITO_ID", value = "${booking_userpool}", valueTransformer = ValueTransformer.USER_POOL_NAME_TO_USER_POOL_ID),
+		@EnvironmentVariable(key = "CLIENT_ID", value = "${booking_userpool}", valueTransformer = ValueTransformer.USER_POOL_NAME_TO_CLIENT_ID)
 }
 )
 public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewayV2HTTPResponse> {
@@ -123,8 +126,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		}
 
 		logger.log("Looking up user pool ID for: " + System.getenv("booking_userpool"));
-		String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
-				.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+		String userPoolId = System.getenv("COGNITO_ID");
 		logger.log("Found user pool ID: " + userPoolId);
 
 		AdminCreateUserRequest adminCreateUserRequest = new AdminCreateUserRequest()
@@ -170,12 +172,10 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 			throw new IllegalArgumentException("There was an error in the request.");
 		}
 
-		String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
-				.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+		String userPoolId = System.getenv("COGNITO_ID");
 		logger.log("Retrieved user pool ID: " + userPoolId);
 
-		String clientId = getClientIdByUserPoolName(System.getenv("booking_userpool"))
-				.orElseThrow(() -> new IllegalArgumentException("No such client ID"));
+		String clientId = System.getenv("CLIENT_ID");
 		logger.log("Retrieved client ID: " + clientId);
 
 		Map<String, String> authParams = new HashMap<>();
@@ -261,40 +261,6 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	public Optional<String> getUserPoolIdByName(String userPoolName) {
-		String nextToken = null;
-
-		do {
-			ListUserPoolsRequest listUserPoolsRequest = new ListUserPoolsRequest()
-					.withMaxResults(60)
-					.withNextToken(nextToken);
-
-			ListUserPoolsResult listUserPoolsResult = cognitoClient.listUserPools(listUserPoolsRequest);
-
-			for (UserPoolDescriptionType pool : listUserPoolsResult.getUserPools()) {
-				if (pool.getName().equals(userPoolName)) {
-					return Optional.of(pool.getId());
-				}
-			}
-
-			nextToken = listUserPoolsResult.getNextToken();
-		} while (nextToken != null);
-
-		return Optional.empty();
-	}
-
-	public Optional<String> getClientIdByUserPoolName(String userPoolName) {
-		String userPoolId = getUserPoolIdByName(userPoolName).get();
-
-		ListUserPoolClientsRequest listUserPoolClientsRequest = new ListUserPoolClientsRequest().withUserPoolId(userPoolId);
-		ListUserPoolClientsResult listUserPoolClientsResult = cognitoClient.listUserPoolClients(listUserPoolClientsRequest);
-
-		for (UserPoolClientDescription client : listUserPoolClientsResult.getUserPoolClients()) {
-			return Optional.of(client.getClientId());
-		}
-
-		return Optional.empty();
-	}
 
 	private void saveToDynamoDb(Map<String, AttributeValue> itemValues, String table) {
 		final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.standard()
