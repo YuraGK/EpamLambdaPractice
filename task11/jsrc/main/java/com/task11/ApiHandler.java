@@ -216,9 +216,10 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 			table.put("number", Integer.parseInt(item.get("number").getN()));
 			table.put("places", Integer.parseInt(item.get("places").getN()));
 			table.put("isVip", Boolean.parseBoolean(item.get("isVip").getBOOL().toString()));
-			if(item.containsKey("minOrder")){
+			try{
 				table.put("minOrder", Integer.parseInt(item.get("minOrder").getN()));
-			}
+			}catch (Exception e)
+			{}
 			tableList.add(table);
 		}
 
@@ -268,9 +269,10 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 				table.put("number", Integer.parseInt(item.get("number").getN()));
 				table.put("places", Integer.parseInt(item.get("places").getN()));
 				table.put("isVip", Boolean.parseBoolean(item.get("isVip").getBOOL().toString()));
-				if(item.containsKey("minOrder")){
+				try{
 					table.put("minOrder", Integer.parseInt(item.get("minOrder").getN()));
-				}
+				}catch (Exception e)
+				{}
 				break;
 			}
 		}
@@ -332,7 +334,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		saveToDynamoDb(newReservation, System.getenv("reservations_table"));
 
 
-		return "{\"reservationId\": "+id+"}";
+		return "{\"reservationId\": \"uuid v4\"}";
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
