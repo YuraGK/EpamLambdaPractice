@@ -117,18 +117,16 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		String email = String.valueOf(body.get("email"));
 		String password = String.valueOf(body.get("password"));
 
+		logger.log("CreateUser parameters: " + email+" "+password);
+
 		Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
+
 		Matcher emailMatcher = emailPattern.matcher(email);
-		if(!emailMatcher.matches()||!(password.length() >= 8 &&
-				password.length() <= 20 &&
-				password.matches(".*[A-Z].*") &&
-				password.matches(".*[a-z].*") &&
-				password.matches(".*\\d.*") &&
-				password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*"))){
+		if(!emailMatcher.matches()||!validPassword(password)){
 			throw new IllegalArgumentException("There was an error in the request.");
 		}
 
-		logger.log("CreateUser parameters: " + email+" "+password);
+
 
 		logger.log("Looking up user pool ID for: " + System.getenv("booking_userpool"));
 		String userPoolId = System.getenv("COGNITO_ID");
@@ -285,5 +283,17 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 				.build();
 	}
 
+	public static boolean validPassword(String password) {
+		if (password == null) {
+			return false;
+		}
+
+		return password.length() >= 8 &&
+				password.length() <= 20 &&
+				password.matches(".*[A-Z].*") &&
+				password.matches(".*[a-z].*") &&
+				password.matches(".*\\d.*") &&
+				password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+	}
 
 }
