@@ -70,7 +70,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 	private final ObjectMapper objectMapper = new ObjectMapper();
-	private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\\\.[A-Za-z]{2,6}$";
+	private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 	private final AWSCognitoIdentityProvider cognitoClient = AWSCognitoIdentityProviderClientBuilder.defaultClient();
 	public APIGatewayV2HTTPResponse handleRequest(Map<String, Object> event, Context context) {
 		LambdaLogger lambdaLogger = context.getLogger();
