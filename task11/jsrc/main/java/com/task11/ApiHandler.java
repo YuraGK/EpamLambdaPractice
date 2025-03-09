@@ -226,7 +226,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 		Map<String, Object> jsonResponse = new HashMap<>();
 		jsonResponse.put("tables", tableList);
-		return "{\"statusCode\": 200, \"event\": \""+objectMapper.writeValueAsString(jsonResponse)+"\"}";
+		return objectMapper.writeValueAsString(jsonResponse);
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -253,7 +253,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		saveToDynamoDb(newTable, System.getenv("tables_table"));
 
 
-		return "{\"statusCode\": 200, \"id\": "+Integer.parseInt(id)+"}";
+		return "{\"id\": "+Integer.parseInt(id)+"}";
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private String getTableById(String parseInt) throws JsonProcessingException{
@@ -272,7 +272,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 			}
 		}
 
-		return "{\"statusCode\": 200, \"event\": \""+objectMapper.writeValueAsString(table)+"\"}";
+		return objectMapper.writeValueAsString(table);
 
 	}
 
