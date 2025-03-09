@@ -158,18 +158,18 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		String ht = hourly.get("time").toString();
 
 		String cleanInput = ht.substring(1, ht.length() - 1);
-		String[] dateTimes = cleanInput.trim().split("\", \"");
-		/*
+		//List<AttributeValue> dateTimes = Arrays.stream(cleanInput.trim().split("\", \"")).map(x -> new AttributeValue(x)).collect(Collectors.toList());
+
+		String[] dates = cleanInput.trim().split("\", \"");
+		List<AttributeValue> dateTimes = new ArrayList<>();
+		for (String date : dates) {
+			dateTimes.add(new AttributeValue(date));
+		}
+
 		AttributeValue time = new AttributeValue();
 
-		List<AttributeValue> dateList = new ArrayList<>();
 
-		dateList.add(new AttributeValue("2023-12-04T00:00"));
-		dateList.add(new AttributeValue("2023-12-04T01:00"));
-		dateList.add(new AttributeValue("2023-12-04T02:00"));
-		dateList.add(new AttributeValue("..."));
-
-		time.setL(dateList);*/
+		time.setL(dateTimes);
 
 
 /////////////////////////////////////////
@@ -180,32 +180,20 @@ public class Processor implements RequestHandler<APIGatewayV2HTTPEvent, APIGatew
 		String[] numbers = cleanInput.split(", ");
 
 		List<AttributeValue> floatList = new ArrayList<>();
-		/*for (String number : numbers) {
+		for (String number : numbers) {
 			AttributeValue tmp = new AttributeValue();
 			tmp.setN(number);
 			floatList.add(tmp);
-		}*/
-		AttributeValue tmp = new AttributeValue();
-		tmp.setN("-2.4");
-		floatList.add(tmp);
-
-		tmp = new AttributeValue();
-		tmp.setN("-2.8");
-		floatList.add(tmp);
-
-		tmp = new AttributeValue();
-		tmp.setN("-3.2");
-		floatList.add(tmp);
-		floatList.add(new AttributeValue("..."));
+		}
 
 		AttributeValue temperature_2m = new AttributeValue();
 		temperature_2m.setL(floatList);
 
 
-		List<String> hourlyTimes = Arrays.asList("2023-12-04T00:00", "2023-12-04T01:00", "2023-12-04T02:00", "...");
+		/*List<String> hourlyTimes = Arrays.asList("2023-12-04T00:00", "2023-12-04T01:00", "2023-12-04T02:00", "...");
 		resHourly.put("time", new AttributeValue().withL(hourlyTimes.stream().map(time -> new AttributeValue(time)).collect(Collectors.toList())));
-
-		//resHourly.put("time", time);
+*/
+		resHourly.put("time", time);
 		resHourly.put("temperature_2m",temperature_2m);
 
 		return resHourly;
