@@ -74,6 +74,9 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 			}else if ("POST".equals(method) && "/tables".equals(rawPath)) {
 				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
 			}else if ("GET".equals(method) && "/tables/".equals(rawPath.substring(0, rawPath.length() - 1))) {
+
+				String tableId = rawPath.substring("/tables/".length());
+
 				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
 			}else if ("POST".equals(method) && "/reservations".equals(rawPath)) {
 				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
@@ -84,80 +87,13 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 		}catch (Exception e) {
 			e.printStackTrace();
-			lambdaLogger.log("ERROR"+e.getMessage());
+			lambdaLogger.log("ERROR "+e.getMessage());
 			return buildResponse(400, "{\"statusCode\": 400, \"event\": "+ e.getMessage() +"}");
 		}
 
 		return buildResponse(200, resultBody);
 	}
-
-	private String getTables() {
-
-
-		ScanResult scanResult = getFromDynamoDb(System.getenv("tables_table"));
-
-		List<AttributeValue> tableList = new ArrayList<>();
-		////
-
-
-		Map<String, AttributeValue> itemValues = new HashMap<>();
-		itemValues.put("tables",new AttributeValue().withL(tableList));
-		AttributeValue resBody = new AttributeValue().withM(itemValues);
-
-		return "{\"statusCode\": 200, \"event\": \""+resBody+"\"}";
-	}
-
-	private String postSignin(Map<String, Object> requestEvent, LambdaLogger logger) throws JsonProcessingException {
-		Map<String, Object> body = objectMapper.readValue((String) requestEvent.get("body"), Map.class);
-
-		String email = String.valueOf(body.get("email"));
-		String password = String.valueOf(body.get("password"));
-		Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
-		Matcher emailMatcher = emailPattern.matcher(email);
-		Pattern passwordPattern = Pattern.compile(PASSWORD_REGEX);
-		Matcher passwordMatcher = passwordPattern.matcher(password);
-		if(!emailMatcher.matches()||!passwordMatcher.matches()){
-			throw new IllegalArgumentException("There was an error in the request.");
-		}
-
-		String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
-				.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
-		logger.log("Retrieved user pool ID: " + userPoolId);
-
-		String clientId = getClientIdByUserPoolName(System.getenv("booking_userpool"))
-				.orElseThrow(() -> new IllegalArgumentException("No such client ID"));
-		logger.log("Retrieved client ID: " + clientId);
-
-		Map<String, String> authParams = new HashMap<>();
-		authParams.put("USERNAME", email);
-		authParams.put("PASSWORD", password);
-		logger.log("Authentication parameters: " + authParams);
-
-		AdminInitiateAuthRequest authRequest = new AdminInitiateAuthRequest()
-				.withAuthFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
-				.withUserPoolId(userPoolId)
-				.withClientId(clientId)
-				.withAuthParameters(authParams);
-		logger.log("AdminInitiateAuthRequest: " + authRequest.toString());
-
-		AdminInitiateAuthResult result = cognitoClient.adminInitiateAuth(authRequest);
-		logger.log("AdminInitiateAuthResult: " + result.toString());
-		String accessToken = "";
-		if (result.getAuthenticationResult() != null) {
-			accessToken = result.getAuthenticationResult().getIdToken();
-			logger.log("Authentication successful. AccessToken: " + accessToken);
-
-			Map<String, Object> jsonResponse = new HashMap<>();
-			jsonResponse.put("accessToken", accessToken);
-
-			logger.log("Response JSON: " + jsonResponse);
-			return "{\"statusCode\": 200, \"event\": \""+accessToken+"\"}";
-		} else {
-			logger.log("Authentication failed, no tokens returned.");
-			throw new IllegalArgumentException("Authentication failed, no tokens returned.");
-		}
-	}
-
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private String postSignup(Map<String, Object> requestEvent, LambdaLogger logger) throws JsonProcessingException {
 		Map<String, Object> body = objectMapper.readValue((String) requestEvent.get("body"), Map.class);
 
@@ -204,6 +140,77 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 		return "{\"statusCode\": 200, \"event\": \"Sign-up process is successful\"}";
 	}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private String postSignin(Map<String, Object> requestEvent, LambdaLogger logger) throws JsonProcessingException {
+		Map<String, Object> body = objectMapper.readValue((String) requestEvent.get("body"), Map.class);
+
+		String email = String.valueOf(body.get("email"));
+		String password = String.valueOf(body.get("password"));
+		Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
+		Matcher emailMatcher = emailPattern.matcher(email);
+		Pattern passwordPattern = Pattern.compile(PASSWORD_REGEX);
+		Matcher passwordMatcher = passwordPattern.matcher(password);
+		if(!emailMatcher.matches()||!passwordMatcher.matches()){
+			throw new IllegalArgumentException("There was an error in the request.");
+		}
+
+		String userPoolId = getUserPoolIdByName(System.getenv("booking_userpool"))
+				.orElseThrow(() -> new IllegalArgumentException("No such user pool"));
+		logger.log("Retrieved user pool ID: " + userPoolId);
+
+		String clientId = getClientIdByUserPoolName(System.getenv("booking_userpool"))
+				.orElseThrow(() -> new IllegalArgumentException("No such client ID"));
+		logger.log("Retrieved client ID: " + clientId);
+
+		Map<String, String> authParams = new HashMap<>();
+		authParams.put("USERNAME", email);
+		authParams.put("PASSWORD", password);
+		logger.log("Authentication parameters: " + authParams);
+
+		AdminInitiateAuthRequest authRequest = new AdminInitiateAuthRequest()
+				.withAuthFlow(AuthFlowType.ADMIN_NO_SRP_AUTH)
+				.withUserPoolId(userPoolId)
+				.withClientId(clientId)
+				.withAuthParameters(authParams);
+		logger.log("AdminInitiateAuthRequest: " + authRequest.toString());
+
+		AdminInitiateAuthResult result = cognitoClient.adminInitiateAuth(authRequest);
+		logger.log("AdminInitiateAuthResult: " + result.toString());
+
+		String accessToken = "";
+		if (result.getAuthenticationResult() != null) {
+			accessToken = result.getAuthenticationResult().getIdToken();
+			logger.log("Authentication successful. AccessToken: " + accessToken);
+
+			Map<String, Object> jsonResponse = new HashMap<>();
+			jsonResponse.put("accessToken", accessToken);
+
+			logger.log("Response JSON: " + jsonResponse);
+			return "{\"statusCode\": 200, \"accessToken\": \""+accessToken+"\"}";
+		} else {
+			logger.log("Authentication failed, no tokens returned.");
+			throw new IllegalArgumentException("Authentication failed, no tokens returned.");
+		}
+	}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private String getTables() {
+
+
+		ScanResult scanResult = getFromDynamoDb(System.getenv("tables_table"));
+
+		List<AttributeValue> tableList = new ArrayList<>();
+		////
+
+
+		Map<String, AttributeValue> itemValues = new HashMap<>();
+		itemValues.put("tables",new AttributeValue().withL(tableList));
+		AttributeValue resBody = new AttributeValue().withM(itemValues);
+
+		return "{\"statusCode\": 200, \"event\": \""+resBody+"\"}";
+	}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	public Optional<String> getUserPoolIdByName(String userPoolName) {
 		String nextToken = null;
@@ -264,4 +271,6 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 				.withBody(body)
 				.build();
 	}
+
+
 }
