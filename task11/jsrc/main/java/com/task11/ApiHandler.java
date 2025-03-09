@@ -253,7 +253,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		saveToDynamoDb(newTable, System.getenv("tables_table"));
 
 
-		return "{\"statusCode\": 200, \"id\": \""+Integer.parseInt(id)+"\"}";
+		return "{\"statusCode\": 200, \"id\": "+Integer.parseInt(id)+"}";
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private String getTableById(String parseInt) throws JsonProcessingException{
