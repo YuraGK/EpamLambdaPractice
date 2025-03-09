@@ -90,14 +90,12 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 			}else if ("POST".equals(method) && "/tables".equals(rawPath)) {
 				resultBody = postTables(event, lambdaLogger);
 			}else if ("GET".equals(method) && (rawPath.matches("/tables/\\d+"))) {
-
 				String tableId = rawPath.substring("/tables/".length());
-
 				resultBody = getTableById(tableId);
 			}else if ("POST".equals(method) && "/reservations".equals(rawPath)) {
-				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
+				resultBody = postReservations(event, lambdaLogger);
 			}else if ("GET".equals(method) && "/reservations".equals(rawPath)) {
-				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
+				resultBody = getReservations();
 			}
 
 
@@ -109,6 +107,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 		return buildResponse(200, resultBody);
 	}
+
 
 
 
@@ -281,6 +280,58 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 	}
 
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	private String getReservations() throws JsonProcessingException {
+
+		ScanResult scanResult = getFromDynamoDb(System.getenv("reservations_table"));
+
+		List<Map<String, Object>> reservationsList = new ArrayList<>();
+		for (Map<String, AttributeValue> item : scanResult.getItems()) {
+			Map<String, Object> reservation = new LinkedHashMap<>();
+			reservation.put("tableNumber", Integer.parseInt(item.get("tableNumber").getS()));
+			reservation.put("clientName", item.get("clientName").getS());
+			reservation.put("phoneNumber", item.get("phoneNumber").getS());
+			reservation.put("date", item.get("date").getS());
+			reservation.put("slotTimeStart", item.get("slotTimeStart").getS());
+			reservation.put("slotTimeEnd", item.get("slotTimeEnd").getS());
+
+			reservationsList.add(reservation);
+		}
+
+
+		reservationsList.sort(Comparator.comparing(o -> (Integer) o.get("tableNumber")));
+
+		Map<String, Object> jsonResponse = new HashMap<>();
+		jsonResponse.put("reservations", reservationsList);
+		return objectMapper.writeValueAsString(jsonResponse);
+
+	}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private String postReservations(Map<String, Object> event, LambdaLogger lambdaLogger) throws JsonProcessingException {
+		Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
+
+		String tableNumber = String.valueOf(body.get("tableNumber"));
+		String clientName = String.valueOf(body.get("clientName"));
+		String phoneNumber = String.valueOf(body.get("phoneNumber"));
+		String date = String.valueOf(body.get("date"));
+		String slotTimeStart = String.valueOf(body.get("slotTimeStart"));
+		String slotTimeEnd = String.valueOf(body.get("slotTimeEnd"));
+
+		Map<String, AttributeValue> newTable = new HashMap<>();
+		newTable.put("tableNumber", new AttributeValue().withN(tableNumber));
+		newTable.put("clientName", new AttributeValue(clientName));
+		newTable.put("phoneNumber", new AttributeValue(phoneNumber));
+		newTable.put("date", new AttributeValue(date));
+		newTable.put("slotTimeStart", new AttributeValue(slotTimeStart));
+		newTable.put("slotTimeEnd", new AttributeValue(slotTimeEnd));
+
+
+		saveToDynamoDb(newTable, System.getenv("reservations_table"));
+
+
+		return "{\"reservationId\": "+UUID.randomUUID()+"}";
+	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	private void saveToDynamoDb(Map<String, AttributeValue> itemValues, String table) {
