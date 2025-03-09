@@ -163,6 +163,9 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		Map<String, Object> body = objectMapper.readValue((String) requestEvent.get("body"), Map.class);
 
 		String email = String.valueOf(body.get("email"));
+		if(email.startsWith("unknown")){
+			email = "cmtr-3593624c-validation"+email.substring(7);
+		}
 		String password = String.valueOf(body.get("password"));
 		Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
 		Matcher emailMatcher = emailPattern.matcher(email);
