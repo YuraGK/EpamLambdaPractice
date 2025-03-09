@@ -2,18 +2,32 @@ package com.task11;
 
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProvider;
 import com.amazonaws.services.cognitoidp.AWSCognitoIdentityProviderClientBuilder;
-import com.amazonaws.services.cognitoidp.model.*;
+import com.amazonaws.services.cognitoidp.model.AdminCreateUserRequest;
+import com.amazonaws.services.cognitoidp.model.AdminInitiateAuthRequest;
+import com.amazonaws.services.cognitoidp.model.AdminInitiateAuthResult;
+import com.amazonaws.services.cognitoidp.model.AdminSetUserPasswordRequest;
+import com.amazonaws.services.cognitoidp.model.AttributeType;
+import com.amazonaws.services.cognitoidp.model.AuthFlowType;
+import com.amazonaws.services.cognitoidp.model.ListUserPoolClientsRequest;
+import com.amazonaws.services.cognitoidp.model.ListUserPoolClientsResult;
+import com.amazonaws.services.cognitoidp.model.ListUserPoolsRequest;
+import com.amazonaws.services.cognitoidp.model.ListUserPoolsResult;
+import com.amazonaws.services.cognitoidp.model.MessageActionType;
+import com.amazonaws.services.cognitoidp.model.UserPoolClientDescription;
+import com.amazonaws.services.cognitoidp.model.UserPoolDescriptionType;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.ItemUtils;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariable;
 import com.syndicate.deployment.annotations.environment.EnvironmentVariables;
@@ -29,7 +43,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 @LambdaHandler(
     lambdaName = "api_handler",
 	roleName = "api_handler-role",
@@ -72,7 +85,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 			}else if ("GET".equals(method) && "/tables".equals(rawPath)) {
 				resultBody = getTables();
 			}else if ("POST".equals(method) && "/tables".equals(rawPath)) {
-				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
+				resultBody = postTables(event, lambdaLogger);
 			}else if ("GET".equals(method) && "/tables/".equals(rawPath.substring(0, rawPath.length() - 1))) {
 
 				String tableId = rawPath.substring("/tables/".length());
@@ -93,7 +106,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 		return buildResponse(200, resultBody);
 	}
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private String postSignup(Map<String, Object> requestEvent, LambdaLogger logger) throws JsonProcessingException {
 		Map<String, Object> body = objectMapper.readValue((String) requestEvent.get("body"), Map.class);
 
@@ -195,23 +209,58 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		}
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	private String getTables() {
+	private String getTables() throws JsonProcessingException {
 
 
 		ScanResult scanResult = getFromDynamoDb(System.getenv("tables_table"));
 
-		List<AttributeValue> tableList = new ArrayList<>();
-		////
+		List<Map<String, Object>> tableList = new ArrayList<>();
+		for (Map<String, AttributeValue> item : scanResult.getItems()) {
+			Map<String, Object> table = new LinkedHashMap<>();
+			table.put("id", Integer.parseInt(item.get("id").getS()));
+			table.put("number", Integer.parseInt(item.get("number").getN()));
+			table.put("places", Integer.parseInt(item.get("places").getN()));
+			table.put("isVip", Boolean.parseBoolean(item.get("isVip").getBOOL().toString()));
+			table.put("minOrder", item.containsKey("minOrder") ? Integer.parseInt(item.get("minOrder").getN()) : null);
+			tableList.add(table);
+		}
 
 
-		Map<String, AttributeValue> itemValues = new HashMap<>();
-		itemValues.put("tables",new AttributeValue().withL(tableList));
-		AttributeValue resBody = new AttributeValue().withM(itemValues);
+		tableList.sort(Comparator.comparing(o -> (Integer) o.get("id")));
 
-		return "{\"statusCode\": 200, \"event\": \""+resBody+"\"}";
+		Map<String, Object> jsonResponse = new HashMap<>();
+		jsonResponse.put("tables", tableList);
+		return "{\"statusCode\": 200, \"event\": \""+objectMapper.writeValueAsString(jsonResponse)+"\"}";
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	private String postTables(Map<String, Object> event, LambdaLogger lambdaLogger) throws JsonProcessingException {
+		Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
+
+		String id = String.valueOf(body.get("id"));
+		String number = String.valueOf(body.get("number"));
+		String places = String.valueOf(body.get("places"));
+		boolean isVip = Boolean.valueOf(body.get("isVip").toString());
+		String minOrder = "";
+
+		Map<String, AttributeValue> newTable = new HashMap<>();
+		newTable.put("id", new AttributeValue().withN(id));
+		newTable.put("number", new AttributeValue().withN(number));
+		newTable.put("places", new AttributeValue().withN(places));
+		newTable.put("isVip", new AttributeValue().withBOOL(isVip));
+		try{
+			minOrder = String.valueOf(body.get("minOrder").toString());
+			newTable.put("minOrder", new AttributeValue(minOrder));
+		}catch (Exception e)
+		{}
+
+		saveToDynamoDb(newTable, System.getenv("tables_table"));
+
+
+		return "{\"statusCode\": 200, \"id\": \""+id+"\"}";
+	}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public Optional<String> getUserPoolIdByName(String userPoolName) {
 		String nextToken = null;
 
