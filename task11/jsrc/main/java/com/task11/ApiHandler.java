@@ -93,7 +93,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 				String tableId = rawPath.substring("/tables/".length());
 
-				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
+				resultBody = getTableById(tableId);
 			}else if ("POST".equals(method) && "/reservations".equals(rawPath)) {
 				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
 			}else if ("GET".equals(method) && "/reservations".equals(rawPath)) {
@@ -109,6 +109,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 		return buildResponse(200, resultBody);
 	}
+
+
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	private String postSignup(Map<String, Object> requestEvent, LambdaLogger logger) throws JsonProcessingException {
@@ -253,6 +255,27 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 		return "{\"statusCode\": 200, \"id\": \""+Integer.parseInt(id)+"\"}";
 	}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	private String getTableById(String parseInt) throws JsonProcessingException{
+
+		ScanResult scanResult = getFromDynamoDb(System.getenv("tables_table"));
+
+		Map<String, Object> table = new HashMap<>();
+		for (Map<String, AttributeValue> item : scanResult.getItems()) {
+			if(item.get("id").getS().equals(parseInt)){
+				table.put("id", Integer.parseInt(item.get("id").getS()));
+				table.put("number", Integer.parseInt(item.get("number").getN()));
+				table.put("places", Integer.parseInt(item.get("places").getN()));
+				table.put("isVip", Boolean.parseBoolean(item.get("isVip").getBOOL().toString()));
+				table.put("minOrder", item.containsKey("minOrder") ? Integer.parseInt(item.get("minOrder").getN()) : null);
+				break;
+			}
+		}
+
+		return "{\"statusCode\": 200, \"event\": \""+objectMapper.writeValueAsString(table)+"\"}";
+
+	}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
