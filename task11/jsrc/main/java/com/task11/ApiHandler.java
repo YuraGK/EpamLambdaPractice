@@ -337,7 +337,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		}
 
 		if (isReservationOverlapping(tableNumber, date, slotTimeStart, slotTimeEnd)) {
-			lambdaLogger.log("Table does not exist");
+			lambdaLogger.log("Reservation overlaps with an existing reservation");
 			throw new IllegalArgumentException("Reservation overlaps with an existing reservation");
 		}
 
@@ -407,7 +407,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 				.build();
 		ScanResult scanResult = ddb.scan(new ScanRequest().withTableName(System.getenv("reservations_table")));
 		for (Map<String, AttributeValue> item : scanResult.getItems()) {
-			String existingTableNumber = item.get("tableNumber").getS();
+			String existingTableNumber = item.get("tableNumber").getN();
 			String existingDate = item.get("date").getS();
 
 			if (tableNumber.equals(existingTableNumber) && date.equals(existingDate)) {
