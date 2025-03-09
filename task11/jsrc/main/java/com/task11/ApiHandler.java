@@ -154,8 +154,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		cognitoClient.adminSetUserPassword(adminSetUserPassword);
 		logger.log("Password set successfully.");
 
-		cognitoClient.adminCreateUser(adminCreateUserRequest);
-		cognitoClient.adminSetUserPassword(adminSetUserPassword);
+		/*cognitoClient.adminCreateUser(adminCreateUserRequest);
+		cognitoClient.adminSetUserPassword(adminSetUserPassword);*/
 
 		return "{\"statusCode\": 200, \"event\": \"Sign-up process is successful\"}";
 	}
