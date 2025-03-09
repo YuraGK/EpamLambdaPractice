@@ -247,8 +247,8 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		newTable.put("places", new AttributeValue().withN(places));
 		newTable.put("isVip", new AttributeValue().withBOOL(isVip));
 		try{
-			minOrder = String.valueOf(body.get("minOrder").toString());
-			newTable.put("minOrder", new AttributeValue(minOrder));
+			minOrder = body.get("minOrder").toString();
+			newTable.put("minOrder", new AttributeValue().withN(minOrder));
 		}catch (Exception e)
 		{}
 
