@@ -311,6 +311,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 	private String postReservations(Map<String, Object> event, LambdaLogger lambdaLogger) throws JsonProcessingException {
 		Map<String, Object> body = objectMapper.readValue((String) event.get("body"), Map.class);
 
+		String id = UUID.randomUUID().toString();
 		String tableNumber = String.valueOf(body.get("tableNumber"));
 		String clientName = String.valueOf(body.get("clientName"));
 		String phoneNumber = String.valueOf(body.get("phoneNumber"));
@@ -319,6 +320,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		String slotTimeEnd = String.valueOf(body.get("slotTimeEnd"));
 
 		Map<String, AttributeValue> newReservation = new HashMap<>();
+		newReservation.put("id", new AttributeValue(id));
 		newReservation.put("tableNumber", new AttributeValue().withN(tableNumber));
 		newReservation.put("clientName", new AttributeValue(clientName));
 		newReservation.put("phoneNumber", new AttributeValue(phoneNumber));
@@ -330,7 +332,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		saveToDynamoDb(newReservation, System.getenv("reservations_table"));
 
 
-		return "{\"reservationId\": "+UUID.randomUUID()+"}";
+		return "{\"reservationId\": "+id+"}";
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
