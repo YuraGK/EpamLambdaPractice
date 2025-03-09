@@ -291,7 +291,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		List<Map<String, Object>> reservationsList = new ArrayList<>();
 		for (Map<String, AttributeValue> item : scanResult.getItems()) {
 			Map<String, Object> reservation = new LinkedHashMap<>();
-			reservation.put("tableNumber", Integer.parseInt(item.get("tableNumber").getS()));
+			reservation.put("tableNumber", Integer.parseInt(item.get("tableNumber").getN()));
 			reservation.put("clientName", item.get("clientName").getS());
 			reservation.put("phoneNumber", item.get("phoneNumber").getS());
 			reservation.put("date", item.get("date").getS());
