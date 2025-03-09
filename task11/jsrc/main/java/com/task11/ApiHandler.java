@@ -334,7 +334,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 		saveToDynamoDb(newReservation, System.getenv("reservations_table"));
 
 
-		return "{\"reservationId\": \"uuid v4\"}";
+		return "{\"reservationId\": \""+id+"\"}";
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
