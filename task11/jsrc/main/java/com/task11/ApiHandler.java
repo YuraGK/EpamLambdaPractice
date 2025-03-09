@@ -70,8 +70,7 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 	private final ObjectMapper objectMapper = new ObjectMapper();
-	private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
-	private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z0-9])(?=.*[$%^*\\-_])[A-Za-z0-9$%^*\\-_]{12,}$";
+	private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\\\.[A-Za-z]{2,6}$";
 	private final AWSCognitoIdentityProvider cognitoClient = AWSCognitoIdentityProviderClientBuilder.defaultClient();
 	public APIGatewayV2HTTPResponse handleRequest(Map<String, Object> event, Context context) {
 		LambdaLogger lambdaLogger = context.getLogger();
@@ -120,11 +119,16 @@ public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewa
 
 		Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
 		Matcher emailMatcher = emailPattern.matcher(email);
-		Pattern passwordPattern = Pattern.compile(PASSWORD_REGEX);
-		Matcher passwordMatcher = passwordPattern.matcher(password);
-		if(!emailMatcher.matches()||!passwordMatcher.matches()){
+		if(!emailMatcher.matches()||!(password.length() >= 8 &&
+				password.length() <= 20 &&
+				password.matches(".*[A-Z].*") &&
+				password.matches(".*[a-z].*") &&
+				password.matches(".*\\d.*") &&
+				password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*"))){
 			throw new IllegalArgumentException("There was an error in the request.");
 		}
+
+		logger.log("CreateUser parameters: " + email+" "+password);
 
 		logger.log("Looking up user pool ID for: " + System.getenv("booking_userpool"));
 		String userPoolId = System.getenv("COGNITO_ID");
