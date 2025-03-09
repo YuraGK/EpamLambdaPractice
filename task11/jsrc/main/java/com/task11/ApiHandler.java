@@ -50,19 +50,19 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 		@EnvironmentVariable(key = "booking_userpool", value = "${booking_userpool}")
 }
 )
-public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
+public class ApiHandler implements RequestHandler<Map<String, Object>, APIGatewayV2HTTPResponse> {
 
 	private final Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	private static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
 	private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z0-9])(?=.*[$%^*\\-_])[A-Za-z0-9$%^*\\-_]{12,}$";
 	private final AWSCognitoIdentityProvider cognitoClient = AWSCognitoIdentityProviderClientBuilder.defaultClient();
-	public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
+	public APIGatewayV2HTTPResponse handleRequest(Map<String, Object> event, Context context) {
 		LambdaLogger lambdaLogger = context.getLogger();
 		String resultBody = "{\"statusCode\": 200, \"event\": o}";
 
-		String method = event.getRequestContext().getHttp().getMethod();
-		String rawPath = event.getRawPath();
+		String rawPath = (String) event.get("path");
+		String method = (String) event.get("httpMethod");
 
 		try {
 			if ("POST".equals(method) && "/signup".equals(rawPath)) {
@@ -70,7 +70,7 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 			} else if ("POST".equals(method) && "/signin".equals(rawPath)) {
 				resultBody = postSignin(event, lambdaLogger);
 			}else if ("GET".equals(method) && "/tables".equals(rawPath)) {
-				resultBody = getTables(event);
+				resultBody = getTables();
 			}else if ("POST".equals(method) && "/tables".equals(rawPath)) {
 				resultBody = "{\"statusCode\": 200, \"event\": \"l\"}";
 			}else if ("GET".equals(method) && "/tables/".equals(rawPath.substring(0, rawPath.length() - 1))) {
@@ -91,7 +91,7 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		return buildResponse(200, resultBody);
 	}
 
-	private String getTables(APIGatewayV2HTTPEvent event) {
+	private String getTables() {
 
 
 		ScanResult scanResult = getFromDynamoDb(System.getenv("tables_table"));
@@ -107,11 +107,11 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		return "{\"statusCode\": 200, \"event\": \""+resBody+"\"}";
 	}
 
-	private String postSignin(APIGatewayV2HTTPEvent requestEvent, LambdaLogger logger) throws JsonProcessingException {
-		JsonNode jsonNode = objectMapper.readTree(requestEvent.getBody());
+	private String postSignin(Map<String, Object> requestEvent, LambdaLogger logger) throws JsonProcessingException {
+		Map<String, Object> body = objectMapper.readValue((String) requestEvent.get("body"), Map.class);
 
-		String email = jsonNode.get("email").asText();
-		String password = jsonNode.get("password").asText();
+		String email = String.valueOf(body.get("email"));
+		String password = String.valueOf(body.get("password"));
 		Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
 		Matcher emailMatcher = emailPattern.matcher(email);
 		Pattern passwordPattern = Pattern.compile(PASSWORD_REGEX);
@@ -158,13 +158,11 @@ public class ApiHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGate
 		}
 	}
 
-	private String postSignup(APIGatewayV2HTTPEvent requestEvent, LambdaLogger logger) throws JsonProcessingException {
-		JsonNode jsonNode = objectMapper.readTree(requestEvent.getBody());
+	private String postSignup(Map<String, Object> requestEvent, LambdaLogger logger) throws JsonProcessingException {
+		Map<String, Object> body = objectMapper.readValue((String) requestEvent.get("body"), Map.class);
 
-		String firstName = jsonNode.get("firstName").asText();
-		String lastName = jsonNode.get("lastName").asText();
-		String email = jsonNode.get("email").asText();
-		String password = jsonNode.get("password").asText();
+		String email = String.valueOf(body.get("email"));
+		String password = String.valueOf(body.get("password"));
 
 		Pattern emailPattern = Pattern.compile(EMAIL_REGEX);
 		Matcher emailMatcher = emailPattern.matcher(email);
