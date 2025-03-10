@@ -17,6 +17,11 @@
   "paths": {
     "/reservations": {
       "get": {
+        "summary": "get reservations",
+        "description": "get reservations",
+        "requestBody": {
+          "reservations": []
+        },
         "responses": {
           "200": {
             "description": "Succesfully returned reservations",
@@ -75,6 +80,11 @@
         }
       },
       "post": {
+        "summary": "add reservations",
+        "description": "add reservations",
+        "requestBody": {
+          "reservationId": "reservation uuid"
+        },
         "responses": {
           "200": {
             "description": "Succesfully created reservation",
@@ -133,6 +143,11 @@
         }
       },
       "options": {
+        "summary": "reservations options",
+        "description": "reservations options",
+        "requestBody": {
+          "statusCode": 200
+        },
         "responses": {
           "200": {
             "description": "none",
@@ -189,6 +204,11 @@
     },
     "/tables": {
       "get": {
+        "summary": "get tables",
+        "description": "get tables",
+        "requestBody": {
+          "tables": []
+        },
         "responses": {
           "200": {
             "description": "Returned all tables",
@@ -247,6 +267,11 @@
         }
       },
       "post": {
+        "summary": "add tables",
+        "description": "add tables",
+        "requestBody": {
+          "id": 1
+        },
         "responses": {
           "200": {
             "description": "Added table",
@@ -305,6 +330,11 @@
         }
       },
       "options": {
+        "summary": "table options",
+        "description": "table options",
+        "requestBody": {
+          "statusCode": 200
+        },
         "responses": {
           "200": {
             "description": "none",
@@ -361,6 +391,12 @@
     },
     "/signin": {
       "post": {
+        "summary": "signin",
+        "description": "signin",
+        "requestBody": {
+          "statusCode": 200,
+          "accessToken": "e"
+        },
         "responses": {
           "200": {
             "description": "Authentication",
@@ -414,6 +450,11 @@
         }
       },
       "options": {
+        "summary": "signin options",
+        "description": "signin options",
+        "requestBody": {
+          "statusCode": 200
+        },
         "responses": {
           "200": {
             "description": "none",
@@ -470,6 +511,12 @@
     },
     "/signup": {
       "post": {
+        "summary": "signup",
+        "description": "signup",
+        "requestBody": {
+          "statusCode": 200,
+          "event": "Sign-up process is successful"
+        },
         "responses": {
           "200": {
             "description": "Authorisation",
@@ -523,6 +570,11 @@
         }
       },
       "options": {
+        "summary": "signup options",
+        "description": "signup options",
+        "requestBody": {
+          "statusCode": 200
+        },
         "responses": {
           "200": {
             "description": "none",
@@ -579,6 +631,15 @@
     },
     "/tables/{tableId}": {
       "get": {
+        "summary": "get table by id",
+        "description": "get table by id",
+        "requestBody": {
+          "id": 1,
+          "number": 1,
+          "places": 3,
+          "isVip": true,
+          "minOrder": 200
+        },
         "parameters": [
           {
             "name": "tableId",
@@ -647,6 +708,11 @@
         }
       },
       "options": {
+        "summary": "table w id options",
+        "description": "table w id options",
+        "requestBody": {
+          "statusCode": 200
+        },
         "parameters": [
           {
             "name": "tableId",
